@@ -19,16 +19,28 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         return window.matchMedia('(prefers-color-scheme: dark)').matches;
     });
 
-    // Apply dark mode class to html element
+    // Apply dark mode class to html element with smooth transition
     useEffect(() => {
         const root = document.documentElement;
+
+        // Add transitioning class for smooth animation
+        root.classList.add('theme-transitioning');
+
         if (isDark) {
             root.classList.add('dark');
         } else {
             root.classList.remove('dark');
         }
+
+        // Remove transitioning class after animation completes
+        const timeout = setTimeout(() => {
+            root.classList.remove('theme-transitioning');
+        }, 450); // Slightly longer than the CSS transition duration
+
         // Save to localStorage
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
+
+        return () => clearTimeout(timeout);
     }, [isDark]);
 
     // Listen for system theme changes

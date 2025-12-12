@@ -1,9 +1,9 @@
 /* =================================
-   Upload Modal Component Styles
+   Gaya Komponen Modal Upload
    Prefix: upload-modal-
    ================================= */
 
-/* ===== OVERLAY ===== */
+/* ===== OVERLAY / LAPISAN LATAR ===== */
 .upload-modal-overlay {
     position: fixed;
     inset: 0;
@@ -28,16 +28,23 @@
     backdrop-filter: blur(4px);
 }
 
-/* ===== MAIN CONTAINER ===== */
+/* ===== KONTAINER UTAMA ===== */
 .upload-modal-container {
     position: relative;
     width: 100%;
-    background-color: var(--color-dark-card);
+    background-color: var(--color-bg-white);
     border-radius: 1rem 1rem 0 0;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     overflow: hidden;
     max-height: 95vh;
     animation: slideInFromBottom 0.2s ease-out;
+    border: 1px solid var(--color-border-light);
+}
+
+.dark .upload-modal-container {
+    background-color: var(--color-dark-card);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border-color: var(--color-dark-border);
 }
 
 @media (min-width: 768px) {
@@ -49,13 +56,17 @@
     }
 }
 
-/* ===== HEADER ===== */
+/* ===== HEADER / BAGIAN ATAS ===== */
 .upload-modal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--color-dark-border);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.dark .upload-modal-header {
+    border-bottom-color: var(--color-dark-border);
 }
 
 @media (min-width: 768px) {
@@ -67,6 +78,10 @@
 .upload-modal-title {
     font-size: 1.125rem;
     font-weight: 700;
+    color: var(--color-text-black);
+}
+
+.dark .upload-modal-title {
     color: var(--color-text-white);
 }
 
@@ -78,6 +93,11 @@
 }
 
 .upload-modal-close-btn:hover {
+    color: var(--color-text-black);
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dark .upload-modal-close-btn:hover {
     color: var(--color-text-white);
     background-color: rgba(255, 255, 255, 0.1);
 }
@@ -87,7 +107,7 @@
     height: 1.25rem;
 }
 
-/* ===== CONTENT LAYOUT ===== */
+/* ===== LAYOUT KONTEN ===== */
 .upload-modal-content {
     display: flex;
     flex-direction: column;
@@ -103,11 +123,15 @@
     }
 }
 
-/* ===== LEFT PANEL - UPLOAD AREA ===== */
+/* ===== PANEL KIRI - AREA UPLOAD ===== */
 .upload-modal-left {
     width: 100%;
     padding: 1rem;
-    border-bottom: 1px solid var(--color-dark-border);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.dark .upload-modal-left {
+    border-bottom-color: var(--color-dark-border);
 }
 
 @media (min-width: 768px) {
@@ -115,14 +139,18 @@
         width: 40%;
         padding: 1.5rem;
         border-bottom: none;
-        border-right: 1px solid var(--color-dark-border);
+        border-right: 1px solid var(--color-border-light);
+    }
+
+    .dark .upload-modal-left {
+        border-right-color: var(--color-dark-border);
     }
 }
 
-/* ===== DROPZONE ===== */
+/* ===== AREA DROPZONE / SERET & LEPAS ===== */
 .upload-modal-dropzone {
     position: relative;
-    border: 2px dashed var(--color-dark-border);
+    border: 2px dashed var(--color-border-gray);
     border-radius: 0.75rem;
     cursor: pointer;
     display: flex;
@@ -133,6 +161,12 @@
     transition: all 0.2s ease;
     overflow: hidden;
     height: 12.5rem;
+    background-color: var(--color-bg-gray-50);
+}
+
+.dark .upload-modal-dropzone {
+    border-color: var(--color-dark-border);
+    background-color: rgba(255, 255, 255, 0.02);
 }
 
 @media (min-width: 768px) {
@@ -144,28 +178,38 @@
 
 .upload-modal-dropzone:hover {
     border-color: var(--color-primary);
-    background-color: rgba(255, 255, 255, 0.02);
+    background-color: rgba(67, 160, 71, 0.05);
 }
 
+.dark .upload-modal-dropzone:hover {
+    background-color: rgba(67, 160, 71, 0.1);
+}
+
+/* Dropzone aktif (saat menyeret file) */
 .upload-modal-dropzone-active {
     border-color: var(--color-primary);
     background-color: rgba(67, 160, 71, 0.1);
 }
 
+/* Dropzone sudah ada gambar */
 .upload-modal-dropzone-has-image {
     border-style: solid;
     border-color: var(--color-primary);
 }
 
-/* Dropzone content */
+/* Konten dalam dropzone */
 .upload-modal-dropzone-icon-wrapper {
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 50%;
-    background-color: rgba(67, 160, 71, 0.2);
+    background-color: rgba(67, 160, 71, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.dark .upload-modal-dropzone-icon-wrapper {
+    background-color: rgba(67, 160, 71, 0.2);
 }
 
 @media (min-width: 768px) {
@@ -196,6 +240,10 @@
 .upload-modal-dropzone-title {
     font-size: 0.875rem;
     font-weight: 500;
+    color: var(--color-text-black);
+}
+
+.dark .upload-modal-dropzone-title {
     color: var(--color-text-white);
 }
 
@@ -214,9 +262,13 @@
 .upload-modal-dropzone-badge {
     padding: 0.125rem 0.5rem;
     border-radius: 9999px;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(0, 0, 0, 0.05);
     font-size: 0.625rem;
     color: var(--color-text-gray);
+}
+
+.dark .upload-modal-dropzone-badge {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 @media (min-width: 768px) {
@@ -225,14 +277,14 @@
     }
 }
 
-/* Preview image in dropzone */
+/* Pratinjau gambar di dropzone */
 .upload-modal-preview-img {
     width: 100%;
     height: 100%;
     object-fit: contain;
 }
 
-/* Overlay buttons on image */
+/* Tombol overlay pada gambar */
 .upload-modal-img-btn {
     position: absolute;
     padding: 0.5rem;
@@ -262,7 +314,7 @@
     font-size: 0.75rem;
 }
 
-/* Processing state */
+/* Status pemrosesan / loading */
 .upload-modal-processing {
     display: flex;
     flex-direction: column;
@@ -282,7 +334,7 @@
     color: var(--color-text-gray);
 }
 
-/* ===== ANALYZE BUTTON ===== */
+/* ===== TOMBOL ANALISIS AI ===== */
 .upload-modal-analyze-btn {
     width: 100%;
     margin-top: 0.75rem;
@@ -295,8 +347,12 @@
     justify-content: center;
     gap: 0.5rem;
     transition: all 0.2s ease;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(0, 0, 0, 0.05);
     color: var(--color-text-gray);
+}
+
+.dark .upload-modal-analyze-btn {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 @media (min-width: 768px) {
@@ -312,6 +368,7 @@
     cursor: not-allowed;
 }
 
+/* Tombol analisis aktif (bisa diklik) */
 .upload-modal-analyze-btn-active {
     background: linear-gradient(to right, var(--color-primary), #2dd4bf);
     color: var(--color-text-white);
@@ -333,7 +390,7 @@
     }
 }
 
-/* ===== RIGHT PANEL - FORM ===== */
+/* ===== PANEL KANAN - FORM ===== */
 .upload-modal-right {
     width: 100%;
     padding: 1rem;
@@ -352,7 +409,7 @@
     }
 }
 
-/* ===== FORM ELEMENTS ===== */
+/* ===== ELEMEN FORM ===== */
 .upload-modal-form-group {
     display: flex;
     flex-direction: column;
@@ -362,7 +419,7 @@
     display: block;
     font-size: 0.75rem;
     font-weight: 500;
-    color: var(--color-text-gray-light);
+    color: var(--color-text-gray);
     margin-bottom: 0.25rem;
 }
 
@@ -378,11 +435,19 @@
     width: 100%;
     padding: 0.5rem 0.75rem;
     border-radius: 0.5rem;
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--color-dark-border);
-    color: var(--color-text-white);
+    background-color: var(--color-bg-gray-50);
+    border: 1px solid var(--color-border-gray);
+    color: var(--color-text-black);
     font-size: 0.875rem;
     transition: border-color 0.2s ease;
+}
+
+.dark .upload-modal-input,
+.dark .upload-modal-select,
+.dark .upload-modal-textarea {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: var(--color-dark-border);
+    color: var(--color-text-white);
 }
 
 @media (min-width: 768px) {
@@ -419,7 +484,7 @@
     resize: none;
 }
 
-/* Amount input with prefix */
+/* Input nominal dengan prefix Rp */
 .upload-modal-amount-wrapper {
     position: relative;
 }
@@ -438,7 +503,7 @@
     padding-left: 2.5rem;
 }
 
-/* Desktop-only field */
+/* Field hanya untuk desktop */
 .upload-modal-desktop-only {
     display: none;
 }
@@ -449,7 +514,7 @@
     }
 }
 
-/* ===== ACTION BUTTONS ===== */
+/* ===== TOMBOL AKSI ===== */
 .upload-modal-actions {
     display: flex;
     gap: 0.75rem;
@@ -463,15 +528,21 @@
     }
 }
 
+/* Tombol batal */
 .upload-modal-cancel-btn {
     flex: 1;
     padding: 0.625rem 1rem;
     border-radius: 0.5rem;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--color-text-white);
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--color-text-black);
     font-size: 0.875rem;
     font-weight: 500;
     transition: background-color 0.2s ease;
+}
+
+.dark .upload-modal-cancel-btn {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-text-white);
 }
 
 @media (min-width: 768px) {
@@ -482,9 +553,14 @@
 }
 
 .upload-modal-cancel-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark .upload-modal-cancel-btn:hover {
     background-color: rgba(255, 255, 255, 0.15);
 }
 
+/* Tombol simpan */
 .upload-modal-save-btn {
     flex: 1;
     padding: 0.625rem 1rem;
@@ -521,7 +597,7 @@
     height: 1rem;
 }
 
-/* ===== ZOOM MODAL ===== */
+/* ===== MODAL ZOOM GAMBAR ===== */
 .upload-modal-zoom-overlay {
     position: fixed;
     inset: 0;
@@ -553,6 +629,7 @@
     height: 1.5rem;
 }
 
+/* Kontrol zoom (tombol + - dan level) */
 .upload-modal-zoom-controls {
     position: absolute;
     bottom: 1.5rem;
@@ -590,6 +667,7 @@
     text-align: center;
 }
 
+/* Kontainer gambar zoom */
 .upload-modal-zoom-image-container {
     width: 100%;
     height: 100%;
@@ -605,7 +683,7 @@
     object-fit: contain;
 }
 
-/* ===== ANIMATIONS ===== */
+/* ===== ANIMASI ===== */
 @keyframes slideInFromBottom {
     from {
         transform: translateY(100%);
@@ -630,7 +708,7 @@
     }
 }
 
-/* Hidden utility */
+/* Utilitas tersembunyi */
 .upload-modal-hidden {
     display: none;
 }

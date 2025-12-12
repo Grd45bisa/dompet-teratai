@@ -22,10 +22,25 @@ html {
     scroll-behavior: smooth;
 }
 
+/* Theme transition - applies to all elements during theme switch */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+    transition:
+        background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        fill 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        stroke 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
 body {
     background-color: var(--color-bg-soft);
     color: var(--color-text-black);
-    transition: background-color var(--transition-normal), color var(--transition-normal);
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     min-height: 100vh;
 }
 

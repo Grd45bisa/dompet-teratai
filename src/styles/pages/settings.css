@@ -227,31 +227,57 @@
 /* Switch */
 .settings-switch {
     position: relative;
-    width: 48px;
-    height: 28px;
+    width: 52px;
+    height: 30px;
     border-radius: var(--radius-full);
-    background-color: var(--color-text-light);
-    transition: background-color var(--transition-fast);
+    background-color: #e8f5e9;
+    border: 2px solid #81c784;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dark .settings-switch {
+    background-color: rgba(129, 199, 132, 0.15);
+    border-color: rgba(129, 199, 132, 0.4);
 }
 
 .settings-switch-on {
-    background-color: var(--color-primary);
+    background-color: #43a047;
+    border-color: #2e7d32;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 12px rgba(67, 160, 71, 0.5);
+}
+
+.dark .settings-switch-on {
+    background-color: #66bb6a;
+    border-color: #81c784;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 12px rgba(102, 187, 106, 0.4);
 }
 
 .settings-switch-thumb {
     position: absolute;
-    top: 4px;
-    left: 4px;
+    top: 3px;
+    left: 3px;
     width: 20px;
     height: 20px;
     border-radius: var(--radius-full);
-    background-color: var(--color-bg-white);
-    box-shadow: var(--shadow-md);
-    transition: transform var(--transition-fast);
+    background-color: #43a047;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    transition: all var(--transition-fast);
+}
+
+.dark .settings-switch-thumb {
+    background-color: #81c784;
 }
 
 .settings-switch-thumb-on {
-    transform: translateX(20px);
+    transform: translateX(22px);
+    background-color: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.dark .settings-switch-thumb-on {
+    background-color: #f5f5f5;
 }
 
 /* Action Button */
