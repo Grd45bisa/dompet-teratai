@@ -1,0 +1,297 @@
+/* =================================
+   Expense Form Component Styles
+   Prefix: exp-form-
+   ================================= */
+
+/* Form container */
+.exp-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-5);
+}
+
+/* Receipt preview */
+.exp-form-receipt {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background-color: var(--color-bg-gray-100);
+    margin-bottom: var(--spacing-4);
+}
+
+.dark .exp-form-receipt {
+    background-color: #1f2937;
+}
+
+.exp-form-receipt-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Form group */
+.exp-form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.exp-form-label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    color: var(--color-text-dark);
+    margin-bottom: var(--spacing-2);
+}
+
+.dark .exp-form-label {
+    color: var(--color-text-light);
+}
+
+.exp-form-required {
+    color: var(--color-error);
+}
+
+.exp-form-optional {
+    color: var(--color-text-gray);
+}
+
+/* Row layout */
+.exp-form-row {
+    display: flex;
+    gap: var(--spacing-2);
+}
+
+/* Input field */
+.exp-form-input {
+    flex: 1;
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-4);
+    font-size: var(--text-base);
+    border: 1px solid var(--color-border-gray);
+    border-radius: var(--radius-xl);
+    background-color: var(--color-bg-white);
+    color: var(--color-text-black);
+    transition: all var(--transition-fast);
+}
+
+.dark .exp-form-input {
+    background-color: var(--color-dark-bg);
+    border-color: var(--color-dark-border);
+    color: var(--color-text-white);
+}
+
+.exp-form-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(67, 160, 71, 0.2);
+}
+
+.exp-form-input::placeholder {
+    color: var(--color-text-gray);
+}
+
+.exp-form-input-error {
+    border-color: var(--color-error);
+}
+
+/* Select */
+.exp-form-select {
+    flex: 1;
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-4);
+    font-size: var(--text-base);
+    border: 1px solid var(--color-border-gray);
+    border-radius: var(--radius-xl);
+    background-color: var(--color-bg-white);
+    color: var(--color-text-black);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23757575' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--spacing-4) center;
+    padding-right: var(--spacing-12);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.dark .exp-form-select {
+    background-color: var(--color-dark-bg);
+    border-color: var(--color-dark-border);
+    color: var(--color-text-white);
+}
+
+.exp-form-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(67, 160, 71, 0.2);
+}
+
+/* Amount input */
+.exp-form-amount-wrapper {
+    position: relative;
+}
+
+.exp-form-amount-prefix {
+    position: absolute;
+    left: var(--spacing-4);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-gray);
+    font-weight: var(--font-medium);
+}
+
+.exp-form-amount-input {
+    padding-left: 48px;
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+}
+
+/* Textarea */
+.exp-form-textarea {
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-4);
+    font-size: var(--text-base);
+    border: 1px solid var(--color-border-gray);
+    border-radius: var(--radius-xl);
+    background-color: var(--color-bg-white);
+    color: var(--color-text-black);
+    resize: none;
+    transition: all var(--transition-fast);
+}
+
+.dark .exp-form-textarea {
+    background-color: var(--color-dark-bg);
+    border-color: var(--color-dark-border);
+    color: var(--color-text-white);
+}
+
+.exp-form-textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(67, 160, 71, 0.2);
+}
+
+.exp-form-textarea::placeholder {
+    color: var(--color-text-gray);
+}
+
+/* Error message */
+.exp-form-error {
+    font-size: var(--text-sm);
+    color: var(--color-error);
+    margin-top: 6px;
+}
+
+/* Buttons */
+.exp-form-add-btn {
+    padding: var(--spacing-3) var(--spacing-4);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border-gray);
+    color: var(--color-primary);
+    transition: background-color var(--transition-fast);
+}
+
+.dark .exp-form-add-btn {
+    border-color: var(--color-dark-border);
+}
+
+.exp-form-add-btn:hover {
+    background-color: rgba(67, 160, 71, 0.1);
+}
+
+.exp-form-confirm-btn {
+    padding: var(--spacing-3) var(--spacing-4);
+    border-radius: var(--radius-xl);
+    background-color: var(--color-primary);
+    color: var(--color-text-white);
+    transition: background-color var(--transition-fast);
+}
+
+.exp-form-confirm-btn:hover {
+    background-color: var(--color-primary-dark);
+}
+
+.exp-form-cancel-add-btn {
+    padding: var(--spacing-3) var(--spacing-4);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border-gray);
+    color: var(--color-text-gray);
+    transition: background-color var(--transition-fast);
+}
+
+.dark .exp-form-cancel-add-btn {
+    border-color: var(--color-dark-border);
+}
+
+.exp-form-cancel-add-btn:hover {
+    background-color: var(--color-bg-gray-100);
+}
+
+.dark .exp-form-cancel-add-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Icon */
+.exp-form-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Form actions */
+.exp-form-actions {
+    display: flex;
+    gap: var(--spacing-3);
+    padding-top: var(--spacing-2);
+}
+
+.exp-form-btn-cancel {
+    flex: 1;
+    padding: var(--spacing-3) var(--spacing-4);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border-gray);
+    color: var(--color-text-dark);
+    font-weight: var(--font-medium);
+    transition: background-color var(--transition-fast);
+}
+
+.dark .exp-form-btn-cancel {
+    border-color: var(--color-dark-border);
+    color: var(--color-text-gray);
+}
+
+.exp-form-btn-cancel:hover {
+    background-color: var(--color-bg-gray-50);
+}
+
+.dark .exp-form-btn-cancel:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.exp-form-btn-submit {
+    flex: 1;
+    padding: var(--spacing-3) var(--spacing-4);
+    border-radius: var(--radius-xl);
+    background-color: var(--color-primary);
+    color: var(--color-text-white);
+    font-weight: var(--font-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    transition: background-color var(--transition-fast);
+}
+
+.exp-form-btn-submit:hover {
+    background-color: var(--color-primary-dark);
+}
+
+.exp-form-btn-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.exp-form-spinner {
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}

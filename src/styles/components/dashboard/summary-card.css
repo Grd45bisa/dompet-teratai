@@ -1,0 +1,193 @@
+/* =================================
+   Summary Card Component Styles
+   Prefix: summary-card-
+   ================================= */
+
+/* Summary card container */
+.summary-card-container {
+    background-color: var(--color-bg-white);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-5);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+}
+
+.dark .summary-card-container {
+    background-color: var(--color-dark-card);
+}
+
+.summary-card-container:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Summary card header */
+.summary-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-3);
+}
+
+.summary-card-label {
+    font-size: var(--text-sm);
+    color: var(--color-text-gray);
+}
+
+/* Icon wrapper */
+.summary-card-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.summary-card-icon-wrapper-primary {
+    background-color: rgba(67, 160, 71, 0.1);
+    color: var(--color-primary);
+}
+
+.summary-card-icon-wrapper-danger {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--color-error);
+}
+
+.summary-card-icon-wrapper-warning {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--color-warning);
+}
+
+.summary-card-icon-wrapper-info {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--color-info);
+}
+
+.summary-card-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Summary card value */
+.summary-card-value {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+    color: var(--color-text-black);
+    margin-bottom: var(--spacing-1);
+}
+
+.dark .summary-card-value {
+    color: var(--color-text-white);
+}
+
+/* Summary card trend */
+.summary-card-trend {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    font-size: var(--text-sm);
+}
+
+.summary-card-trend-up {
+    color: var(--color-success);
+}
+
+.summary-card-trend-down {
+    color: var(--color-error);
+}
+
+.summary-card-trend-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.summary-card-trend-text {
+    color: var(--color-text-gray);
+}
+
+/* =================================
+   AI Processing Card Styles
+   Prefix: ai-card-
+   ================================= */
+
+.ai-card {
+    background: linear-gradient(to right, rgba(67, 160, 71, 0.1), rgba(200, 230, 201, 0.2));
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-4);
+    border: 1px solid rgba(67, 160, 71, 0.2);
+}
+
+.dark .ai-card {
+    background: linear-gradient(to right, rgba(67, 160, 71, 0.2), rgba(46, 125, 50, 0.2));
+}
+
+.ai-card-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+}
+
+.ai-card-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    background-color: rgba(67, 160, 71, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ai-card-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--color-primary);
+    animation: spin 1s linear infinite;
+}
+
+.ai-card-info {
+    flex: 1;
+}
+
+.ai-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-1);
+}
+
+.ai-card-sparkle {
+    width: 16px;
+    height: 16px;
+    color: var(--color-primary);
+}
+
+.ai-card-title {
+    font-weight: var(--font-semibold);
+    color: var(--color-text-black);
+}
+
+.dark .ai-card-title {
+    color: var(--color-text-white);
+}
+
+.ai-card-subtitle {
+    font-size: var(--text-sm);
+    color: var(--color-text-gray);
+}
+
+.ai-card-progress {
+    margin-top: var(--spacing-2);
+    height: 6px;
+    background-color: rgba(67, 160, 71, 0.2);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.ai-card-progress-fill {
+    height: 100%;
+    width: 66.67%;
+    background-color: var(--color-primary);
+    border-radius: var(--radius-full);
+    animation: pulse 1.5s ease-in-out infinite;
+}

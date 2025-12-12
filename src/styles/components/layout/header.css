@@ -1,0 +1,117 @@
+/* =================================
+   Header Component Styles
+   Prefix: header-
+   ================================= */
+
+/* Header container */
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-4) var(--spacing-6);
+    background-color: var(--color-bg-white);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.dark .header-container {
+    background-color: var(--color-dark-card);
+    border-bottom-color: var(--color-dark-border);
+}
+
+@media (min-width: 768px) {
+    .header-container {
+        padding: var(--spacing-4) var(--spacing-8);
+    }
+}
+
+/* Header left section */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+}
+
+/* Menu toggle button (mobile) */
+.header-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-lg);
+    color: var(--color-text-gray);
+    transition: all var(--transition-fast);
+}
+
+.header-menu-toggle:hover {
+    background-color: var(--color-bg-gray-100);
+    color: var(--color-text-black);
+}
+
+.dark .header-menu-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-text-white);
+}
+
+@media (min-width: 1024px) {
+    .header-menu-toggle {
+        display: none;
+    }
+}
+
+/* Header title */
+.header-title {
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    color: var(--color-text-black);
+}
+
+.dark .header-title {
+    color: var(--color-text-white);
+}
+
+/* Header subtitle */
+.header-subtitle {
+    font-size: var(--text-sm);
+    color: var(--color-text-gray);
+}
+
+/* Header right section */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+}
+
+/* Header action button */
+.header-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    color: var(--color-text-gray);
+    transition: all var(--transition-fast);
+}
+
+.header-action-btn:hover {
+    background-color: var(--color-bg-gray-100);
+    color: var(--color-text-black);
+}
+
+.dark .header-action-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-text-white);
+}
+
+/* Header notification badge */
+.header-notification-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background-color: var(--color-error);
+}

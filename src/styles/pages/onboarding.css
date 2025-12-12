@@ -1,0 +1,323 @@
+/* =================================
+   Onboarding Page Styles
+   Prefix: onboard-
+   ================================= */
+
+/* Container */
+.onboard-container {
+    min-height: 100vh;
+    background-color: var(--color-bg-gray-50);
+    display: flex;
+    flex-direction: column;
+}
+
+.dark .onboard-container {
+    background-color: var(--color-dark-bg);
+}
+
+/* Header */
+.onboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-4);
+}
+
+@media (min-width: 768px) {
+    .onboard-header {
+        padding: var(--spacing-6);
+    }
+}
+
+.onboard-counter {
+    font-size: var(--text-sm);
+    color: var(--color-text-gray);
+}
+
+.onboard-skip-btn {
+    font-size: var(--text-sm);
+    color: var(--color-text-gray);
+    transition: color var(--transition-fast);
+}
+
+.onboard-skip-btn:hover {
+    color: var(--color-primary);
+}
+
+/* Content */
+.onboard-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: var(--spacing-4);
+    padding-right: var(--spacing-4);
+    padding-bottom: 128px;
+}
+
+@media (min-width: 768px) {
+    .onboard-content {
+        padding-bottom: var(--spacing-8);
+    }
+}
+
+.onboard-content-inner {
+    width: 100%;
+    max-width: 512px;
+}
+
+/* Card */
+.onboard-card {
+    background-color: var(--color-bg-white);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-xl);
+    padding: var(--spacing-6);
+    border: 1px solid var(--color-border-light);
+    transition: all 0.2s ease-out;
+}
+
+.dark .onboard-card {
+    background-color: var(--color-dark-card);
+    border-color: var(--color-dark-border);
+}
+
+@media (min-width: 768px) {
+    .onboard-card {
+        padding: var(--spacing-8);
+    }
+}
+
+.onboard-card-transitioning {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+/* Icon */
+.onboard-icon-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--spacing-6);
+}
+
+.onboard-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-2xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-white);
+    box-shadow: var(--shadow-lg);
+}
+
+.onboard-step-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.onboard-icon-blue {
+    background: linear-gradient(135deg, #3b82f6, #06b6d4);
+}
+
+.onboard-icon-green {
+    background: linear-gradient(135deg, #22c55e, #10b981);
+}
+
+.onboard-icon-amber {
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+}
+
+.onboard-icon-purple {
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+}
+
+/* Text Section */
+.onboard-text-section {
+    text-align: center;
+    margin-bottom: var(--spacing-6);
+}
+
+.onboard-title {
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    color: var(--color-text-black);
+    margin-bottom: var(--spacing-2);
+}
+
+.dark .onboard-title {
+    color: var(--color-text-white);
+}
+
+@media (min-width: 768px) {
+    .onboard-title {
+        font-size: var(--text-2xl);
+    }
+}
+
+.onboard-description {
+    color: var(--color-text-gray);
+}
+
+/* Tips */
+.onboard-tips {
+    background-color: var(--color-bg-gray-50);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-4);
+}
+
+.dark .onboard-tips {
+    background-color: var(--color-dark-bg);
+}
+
+.onboard-tips-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-3);
+}
+
+.onboard-tips-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--color-primary);
+}
+
+.onboard-tips-label {
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    color: var(--color-text-dark);
+}
+
+.dark .onboard-tips-label {
+    color: var(--color-text-light);
+}
+
+.onboard-tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+}
+
+.onboard-tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+}
+
+.onboard-tip-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--color-primary);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.onboard-tip-text {
+    font-size: var(--text-sm);
+    color: var(--color-text-dark);
+}
+
+.dark .onboard-tip-text {
+    color: var(--color-text-gray);
+}
+
+/* Navigation */
+.onboard-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--color-bg-gray-50);
+    padding: var(--spacing-4);
+    padding-bottom: env(safe-area-inset-bottom, var(--spacing-4));
+}
+
+.dark .onboard-nav {
+    background-color: var(--color-dark-bg);
+}
+
+@media (min-width: 768px) {
+    .onboard-nav {
+        position: relative;
+        padding: var(--spacing-6) var(--spacing-4);
+    }
+}
+
+.onboard-nav-inner {
+    max-width: 512px;
+    margin: 0 auto;
+}
+
+/* Progress */
+.onboard-progress {
+    height: 4px;
+    background-color: var(--color-bg-gray-200);
+    border-radius: var(--radius-full);
+    margin-bottom: var(--spacing-4);
+    overflow: hidden;
+}
+
+.dark .onboard-progress {
+    background-color: var(--color-dark-border);
+}
+
+.onboard-progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--color-primary), #14b8a6);
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease-out;
+}
+
+/* Dots */
+.onboard-dots {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-4);
+}
+
+.onboard-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background-color: var(--color-text-light);
+    transition: all 0.3s ease-out;
+}
+
+.dark .onboard-dot {
+    background-color: #4b5563;
+}
+
+.onboard-dot:hover {
+    background-color: var(--color-text-gray);
+}
+
+.onboard-dot-active {
+    width: 24px;
+    background-color: var(--color-primary);
+}
+
+/* Next Button */
+.onboard-next-btn {
+    width: 100%;
+    padding: 14px var(--spacing-6);
+    border-radius: var(--radius-xl);
+    background: linear-gradient(to right, var(--color-primary), #14b8a6);
+    color: var(--color-text-white);
+    font-weight: var(--font-semibold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    box-shadow: var(--shadow-lg), var(--shadow-primary);
+    transition: opacity var(--transition-fast);
+}
+
+.onboard-next-btn:hover {
+    opacity: 0.9;
+}
+
+.onboard-btn-icon {
+    width: 20px;
+    height: 20px;
+}

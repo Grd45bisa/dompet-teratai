@@ -1,0 +1,40 @@
+/* =================================
+   Main CSS Entry Point - Dompet Teratai
+   This file imports all CSS modules
+   ================================= */
+
+/* Base Styles */
+@import './variables.css';
+@import './base.css';
+@import './animations.css';
+
+/* UI Components */
+@import './components/ui/button.css';
+@import './components/ui/card.css';
+@import './components/ui/input.css';
+@import './components/ui/modal.css';
+
+/* Layout Components */
+@import './components/layout/sidebar.css';
+@import './components/layout/header.css';
+@import './components/layout/layout.css';
+
+/* Dashboard Components */
+@import './components/dashboard/summary-card.css';
+@import './components/dashboard/expense-chart.css';
+@import './components/dashboard/recent-expenses.css';
+@import './components/dashboard/expense-form.css';
+@import './components/dashboard/upload-modal.css';
+
+/* Transaction Components */
+@import './components/transactions/transaction-detail-modal.css';
+
+/* Pages */
+@import './pages/login.css';
+@import './pages/dashboard.css';
+@import './pages/transactions.css';
+@import './pages/reports.css';
+@import './pages/settings.css';
+@import './pages/complete-profile.css';
+@import './pages/onboarding.css';
+@import './pages/auth-callback.css';

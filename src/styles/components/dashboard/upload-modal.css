@@ -1,0 +1,257 @@
+/* =================================
+   Upload Modal Component Styles
+   Prefix: upload-modal-
+   ================================= */
+
+/* Modal container (extends modal base) */
+.upload-modal-container {
+    max-width: 600px;
+}
+
+/* Upload area */
+.upload-modal-dropzone {
+    border: 2px dashed var(--color-border-gray);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-8);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    background-color: var(--color-bg-gray-50);
+}
+
+.dark .upload-modal-dropzone {
+    background-color: rgba(255, 255, 255, 0.02);
+    border-color: var(--color-dark-border);
+}
+
+.upload-modal-dropzone:hover,
+.upload-modal-dropzone-active {
+    border-color: var(--color-primary);
+    background-color: rgba(67, 160, 71, 0.05);
+}
+
+.upload-modal-dropzone-icon {
+    width: 48px;
+    height: 48px;
+    color: var(--color-text-gray);
+    margin: 0 auto var(--spacing-4);
+}
+
+.upload-modal-dropzone-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-medium);
+    color: var(--color-text-black);
+    margin-bottom: var(--spacing-2);
+}
+
+.dark .upload-modal-dropzone-title {
+    color: var(--color-text-white);
+}
+
+.upload-modal-dropzone-text {
+    font-size: var(--text-sm);
+    color: var(--color-text-gray);
+}
+
+.upload-modal-dropzone-hint {
+    font-size: var(--text-xs);
+    color: var(--color-text-gray);
+    margin-top: var(--spacing-2);
+}
+
+/* Preview area */
+.upload-modal-preview {
+    position: relative;
+    margin-top: var(--spacing-4);
+}
+
+.upload-modal-preview-image {
+    width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    border-radius: var(--radius-lg);
+    background-color: var(--color-bg-gray-50);
+}
+
+.dark .upload-modal-preview-image {
+    background-color: var(--color-dark-card);
+}
+
+.upload-modal-preview-remove {
+    position: absolute;
+    top: var(--spacing-2);
+    right: var(--spacing-2);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: var(--color-text-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color var(--transition-fast);
+}
+
+.upload-modal-preview-remove:hover {
+    background-color: var(--color-error);
+}
+
+/* Camera options */
+.upload-modal-options {
+    display: flex;
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-4);
+}
+
+.upload-modal-option-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-gray);
+    background-color: var(--color-bg-white);
+    color: var(--color-text-black);
+    transition: all var(--transition-fast);
+}
+
+.dark .upload-modal-option-btn {
+    background-color: var(--color-dark-card);
+    border-color: var(--color-dark-border);
+    color: var(--color-text-white);
+}
+
+.upload-modal-option-btn:hover {
+    border-color: var(--color-primary);
+    background-color: rgba(67, 160, 71, 0.05);
+}
+
+.upload-modal-option-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--color-primary);
+}
+
+.upload-modal-option-text {
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+}
+
+/* Processing state */
+.upload-modal-processing {
+    text-align: center;
+    padding: var(--spacing-8);
+}
+
+.upload-modal-processing-spinner {
+    width: 48px;
+    height: 48px;
+    color: var(--color-primary);
+    margin: 0 auto var(--spacing-4);
+    animation: spin 1s linear infinite;
+}
+
+.upload-modal-processing-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-medium);
+    color: var(--color-text-black);
+    margin-bottom: var(--spacing-2);
+}
+
+.dark .upload-modal-processing-title {
+    color: var(--color-text-white);
+}
+
+.upload-modal-processing-text {
+    font-size: var(--text-sm);
+    color: var(--color-text-gray);
+}
+
+/* Result preview */
+.upload-modal-result {
+    padding: var(--spacing-4);
+    background-color: var(--color-bg-gray-50);
+    border-radius: var(--radius-lg);
+    margin-top: var(--spacing-4);
+}
+
+.dark .upload-modal-result {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.upload-modal-result-row {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-2) 0;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.dark .upload-modal-result-row {
+    border-bottom-color: var(--color-dark-border);
+}
+
+.upload-modal-result-row:last-child {
+    border-bottom: none;
+}
+
+.upload-modal-result-label {
+    font-size: var(--text-sm);
+    color: var(--color-text-gray);
+}
+
+.upload-modal-result-value {
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    color: var(--color-text-black);
+}
+
+.dark .upload-modal-result-value {
+    color: var(--color-text-white);
+}
+
+/* Actions */
+.upload-modal-actions {
+    display: flex;
+    gap: var(--spacing-3);
+    margin-top: var(--spacing-6);
+}
+
+.upload-modal-cancel-btn {
+    flex: 1;
+    padding: var(--spacing-3);
+    border-radius: var(--radius-lg);
+    font-weight: var(--font-medium);
+    color: var(--color-text-gray);
+    background-color: var(--color-bg-gray-100);
+    transition: background-color var(--transition-fast);
+}
+
+.dark .upload-modal-cancel-btn {
+    background-color: var(--color-dark-card);
+    color: var(--color-text-white);
+}
+
+.upload-modal-cancel-btn:hover {
+    background-color: var(--color-bg-gray-200);
+}
+
+.upload-modal-submit-btn {
+    flex: 1;
+    padding: var(--spacing-3);
+    border-radius: var(--radius-lg);
+    font-weight: var(--font-medium);
+    color: var(--color-text-white);
+    background-color: var(--color-primary);
+    transition: background-color var(--transition-fast);
+}
+
+.upload-modal-submit-btn:hover {
+    background-color: var(--color-primary-dark);
+}
+
+.upload-modal-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

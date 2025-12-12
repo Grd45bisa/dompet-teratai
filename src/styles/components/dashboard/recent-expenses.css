@@ -1,0 +1,141 @@
+/* =================================
+   Recent Expenses Component Styles
+   Prefix: recent-expenses-
+   ================================= */
+
+/* Container */
+.recent-expenses-container {
+    background-color: var(--color-bg-white);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.dark .recent-expenses-container {
+    background-color: var(--color-dark-card);
+}
+
+/* Header */
+.recent-expenses-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-4) var(--spacing-6);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.dark .recent-expenses-header {
+    border-bottom-color: var(--color-dark-border);
+}
+
+.recent-expenses-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--color-text-black);
+}
+
+.dark .recent-expenses-title {
+    color: var(--color-text-white);
+}
+
+.recent-expenses-view-all {
+    font-size: var(--text-sm);
+    color: var(--color-primary);
+    font-weight: var(--font-medium);
+}
+
+.recent-expenses-view-all:hover {
+    text-decoration: underline;
+}
+
+/* List */
+.recent-expenses-list {
+    padding: var(--spacing-2) 0;
+}
+
+/* Item */
+.recent-expenses-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+    padding: var(--spacing-3) var(--spacing-6);
+    transition: background-color var(--transition-fast);
+    cursor: pointer;
+}
+
+.recent-expenses-item:hover {
+    background-color: var(--color-bg-gray-50);
+}
+
+.dark .recent-expenses-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Category icon */
+.recent-expenses-category-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Item details */
+.recent-expenses-item-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.recent-expenses-item-desc {
+    font-weight: var(--font-medium);
+    color: var(--color-text-black);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dark .recent-expenses-item-desc {
+    color: var(--color-text-white);
+}
+
+.recent-expenses-item-category {
+    font-size: var(--text-sm);
+    color: var(--color-text-gray);
+}
+
+/* Amount */
+.recent-expenses-amount {
+    font-weight: var(--font-semibold);
+    color: var(--color-text-black);
+    text-align: right;
+}
+
+.dark .recent-expenses-amount {
+    color: var(--color-text-white);
+}
+
+.recent-expenses-date {
+    font-size: var(--text-xs);
+    color: var(--color-text-gray);
+    text-align: right;
+}
+
+/* Empty state */
+.recent-expenses-empty {
+    padding: var(--spacing-8);
+    text-align: center;
+    color: var(--color-text-gray);
+}
+
+.recent-expenses-empty-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto var(--spacing-4);
+    opacity: 0.5;
+}
+
+.recent-expenses-empty-text {
+    font-size: var(--text-sm);
+}
