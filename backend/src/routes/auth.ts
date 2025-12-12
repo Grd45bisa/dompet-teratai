@@ -8,6 +8,7 @@ const router = Router();
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
+const GOOGLE_ANDROID_CLIENT_ID = process.env.GOOGLE_ANDROID_CLIENT_ID || '';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3001}`;
 
@@ -21,6 +22,21 @@ const googleClient = new OAuth2Client(
     GOOGLE_CLIENT_SECRET,
     GOOGLE_REDIRECT_URI
 );
+
+/**
+ * GET /api/auth/config
+ * Get OAuth configuration for mobile apps
+ * Returns client IDs without secrets (safe to expose)
+ */
+router.get('/config', (req: Request, res: Response): void => {
+    res.json({
+        success: true,
+        data: {
+            webClientId: GOOGLE_CLIENT_ID,
+            androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+        },
+    });
+});
 
 /**
  * GET /api/auth/google

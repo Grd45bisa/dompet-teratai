@@ -247,58 +247,49 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
 
     return (
         <>
-            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
+            <div className="upload-modal-overlay">
                 {/* Overlay */}
                 <div
-                    className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                    className="upload-modal-backdrop"
                     onClick={handleClose}
                 />
 
                 {/* Modal */}
-                <div className="relative w-full md:max-w-4xl bg-darkCard rounded-t-2xl md:rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom md:fade-in md:zoom-in-95 duration-200 max-h-[95vh] md:max-h-[90vh]">
+                <div className="upload-modal-container">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-gray-800">
-                        <h2 className="text-lg font-bold text-white">Add New Expense</h2>
+                    <div className="upload-modal-header">
+                        <h2 className="upload-modal-title">Add New Expense</h2>
                         <button
                             onClick={handleClose}
-                            className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+                            className="upload-modal-close-btn"
                         >
-                            <X className="w-5 h-5" />
+                            <X />
                         </button>
                     </div>
 
                     {/* Content - Scrollable on mobile */}
-                    <div className="flex flex-col md:flex-row max-h-[calc(95vh-60px)] md:max-h-[calc(90vh-72px)] overflow-y-auto md:overflow-visible">
+                    <div className="upload-modal-content">
                         {/* Left - Upload Area */}
-                        <div className="w-full md:w-2/5 p-4 md:p-6 border-b md:border-b-0 md:border-r border-gray-800">
+                        <div className="upload-modal-left">
                             <div
                                 ref={dropZoneRef}
                                 onClick={() => !imageUrl && fileInputRef.current?.click()}
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
-                                className={`
-                                    relative rounded-xl border-2 border-dashed cursor-pointer
-                                    flex flex-col items-center justify-center gap-2 transition-all overflow-hidden
-                                    h-50 md:aspect-square
-                                    ${isDragging
-                                        ? 'border-primary bg-primary/10'
-                                        : 'border-gray-700 hover:border-primary hover:bg-gray-800/50'
-                                    }
-                                    ${imageUrl ? 'border-solid border-primary' : ''}
-                                `}
+                                className={`upload-modal-dropzone ${isDragging ? 'upload-modal-dropzone-active' : ''} ${imageUrl ? 'upload-modal-dropzone-has-image' : ''}`}
                             >
                                 {isCompressing ? (
-                                    <div className="flex flex-col items-center gap-2">
-                                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                                        <p className="text-sm text-gray-400">Processing...</p>
+                                    <div className="upload-modal-processing">
+                                        <Loader2 className="upload-modal-processing-spinner" />
+                                        <p className="upload-modal-processing-text">Processing...</p>
                                     </div>
                                 ) : imageUrl ? (
                                     <>
                                         <img
                                             src={imageUrl}
                                             alt="Receipt"
-                                            className="w-full h-full object-contain"
+                                            className="upload-modal-preview-img"
                                         />
                                         {/* Zoom button overlay */}
                                         <button
@@ -306,9 +297,9 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                 e.stopPropagation();
                                                 setShowZoomModal(true);
                                             }}
-                                            className="absolute bottom-2 right-2 p-2 bg-black/70 rounded-lg text-white hover:bg-black/90 transition-colors"
+                                            className="upload-modal-img-btn upload-modal-zoom-btn"
                                         >
-                                            <ZoomIn className="w-4 h-4" />
+                                            <ZoomIn />
                                         </button>
                                         {/* Change image button */}
                                         <button
@@ -316,21 +307,21 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                 e.stopPropagation();
                                                 fileInputRef.current?.click();
                                             }}
-                                            className="absolute top-2 right-2 p-2 bg-black/70 rounded-lg text-white hover:bg-black/90 transition-colors text-xs"
+                                            className="upload-modal-img-btn upload-modal-change-btn"
                                         >
                                             Change
                                         </button>
                                     </>
                                 ) : (
                                     <>
-                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                                            <Camera className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+                                        <div className="upload-modal-dropzone-icon-wrapper">
+                                            <Camera />
                                         </div>
-                                        <div className="text-center px-2">
-                                            <p className="text-sm font-medium text-white">Upload Receipt</p>
-                                            <p className="text-xs text-gray-400 hidden md:block">Click or drag file here</p>
+                                        <div className="upload-modal-dropzone-text-wrapper">
+                                            <p className="upload-modal-dropzone-title">Upload Receipt</p>
+                                            <p className="upload-modal-dropzone-subtitle">Click or drag file here</p>
                                         </div>
-                                        <span className="px-2 py-0.5 rounded-full bg-gray-800 text-[10px] md:text-xs text-gray-400">
+                                        <span className="upload-modal-dropzone-badge">
                                             Max 10MB
                                         </span>
                                     </>
@@ -343,30 +334,23 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                 accept="image/*"
                                 capture="environment"
                                 onChange={handleFileChange}
-                                className="hidden"
+                                className="upload-modal-hidden"
                             />
 
                             {/* Analyze Button */}
                             <button
                                 onClick={handleAnalyze}
                                 disabled={!imageUrl || isAnalyzing}
-                                className={`
-                                    w-full mt-3 md:mt-4 py-2.5 md:py-3 rounded-xl font-medium flex items-center justify-center gap-2
-                                    transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base
-                                    ${imageUrl
-                                        ? 'bg-gradient-to-r from-primary to-teal-400 text-white hover:opacity-90'
-                                        : 'bg-gray-800 text-gray-400'
-                                    }
-                                `}
+                                className={`upload-modal-analyze-btn ${imageUrl ? 'upload-modal-analyze-btn-active' : ''}`}
                             >
                                 {isAnalyzing ? (
                                     <>
-                                        <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
+                                        <Loader2 className="upload-modal-processing-spinner" />
                                         Analyzing...
                                     </>
                                 ) : (
                                     <>
-                                        <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
+                                        <Sparkles />
                                         Analyze Receipt
                                     </>
                                 )}
@@ -374,10 +358,10 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                         </div>
 
                         {/* Right - Form */}
-                        <div className="w-full md:w-3/5 p-4 md:p-6 space-y-3 md:space-y-4 md:max-h-[70vh] md:overflow-y-auto">
+                        <div className="upload-modal-right">
                             {/* Store Name */}
-                            <div>
-                                <label className="block text-xs md:text-sm font-medium text-gray-300 mb-1">
+                            <div className="upload-modal-form-group">
+                                <label className="upload-modal-label">
                                     Store Name *
                                 </label>
                                 <input
@@ -385,19 +369,19 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                     value={storeName}
                                     onChange={(e) => setStoreName(e.target.value)}
                                     placeholder="e.g. BreadTalk, Walmart"
-                                    className="w-full px-3 py-2 md:py-2.5 rounded-lg bg-gray-800/50 border border-gray-700 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-primary"
+                                    className="upload-modal-input"
                                 />
                             </div>
 
                             {/* Category */}
-                            <div>
-                                <label className="block text-xs md:text-sm font-medium text-gray-300 mb-1">
+                            <div className="upload-modal-form-group">
+                                <label className="upload-modal-label">
                                     Category *
                                 </label>
                                 <select
                                     value={categoryId}
                                     onChange={(e) => setCategoryId(e.target.value)}
-                                    className="w-full px-3 py-2 md:py-2.5 rounded-lg bg-gray-800/50 border border-gray-700 text-white text-sm focus:outline-none focus:border-primary appearance-none"
+                                    className="upload-modal-select"
                                 >
                                     <option value="">Select Category</option>
                                     {categories.map((cat) => (
@@ -409,12 +393,12 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                             </div>
 
                             {/* Amount */}
-                            <div>
-                                <label className="block text-xs md:text-sm font-medium text-gray-300 mb-1">
+                            <div className="upload-modal-form-group">
+                                <label className="upload-modal-label">
                                     Amount (Rp) *
                                 </label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary text-sm font-medium">
+                                <div className="upload-modal-amount-wrapper">
+                                    <span className="upload-modal-amount-prefix">
                                         Rp
                                     </span>
                                     <input
@@ -423,14 +407,14 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                         value={formatDisplayAmount(amount)}
                                         onChange={handleAmountChange}
                                         placeholder="0"
-                                        className="w-full pl-10 pr-3 py-2 md:py-2.5 rounded-lg bg-gray-800/50 border border-gray-700 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-primary"
+                                        className="upload-modal-input upload-modal-amount-input"
                                     />
                                 </div>
                             </div>
 
                             {/* Date */}
-                            <div>
-                                <label className="block text-xs md:text-sm font-medium text-gray-300 mb-1">
+                            <div className="upload-modal-form-group">
+                                <label className="upload-modal-label">
                                     Date *
                                 </label>
                                 <input
@@ -438,13 +422,13 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                     value={expenseDate}
                                     onChange={(e) => setExpenseDate(e.target.value)}
                                     max={format(new Date(), 'yyyy-MM-dd')}
-                                    className="w-full px-3 py-2 md:py-2.5 rounded-lg bg-gray-800/50 border border-gray-700 text-white text-sm focus:outline-none focus:border-primary"
+                                    className="upload-modal-input"
                                 />
                             </div>
 
                             {/* Store Address - Hidden on mobile for less clutter */}
-                            <div className="hidden md:block">
-                                <label className="block text-xs md:text-sm font-medium text-gray-300 mb-1">
+                            <div className="upload-modal-form-group upload-modal-desktop-only">
+                                <label className="upload-modal-label">
                                     Store Address
                                 </label>
                                 <input
@@ -452,13 +436,13 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                     value={storeAddress}
                                     onChange={(e) => setStoreAddress(e.target.value)}
                                     placeholder="e.g. Main Street Mall"
-                                    className="w-full px-3 py-2 md:py-2.5 rounded-lg bg-gray-800/50 border border-gray-700 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-primary"
+                                    className="upload-modal-input"
                                 />
                             </div>
 
                             {/* Notes */}
-                            <div>
-                                <label className="block text-xs md:text-sm font-medium text-gray-300 mb-1">
+                            <div className="upload-modal-form-group">
+                                <label className="upload-modal-label">
                                     Notes
                                 </label>
                                 <textarea
@@ -466,31 +450,31 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                     onChange={(e) => setNotes(e.target.value)}
                                     rows={2}
                                     placeholder="Optional notes..."
-                                    className="w-full px-3 py-2 md:py-2.5 rounded-lg bg-gray-800/50 border border-gray-700 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-primary resize-none"
+                                    className="upload-modal-textarea"
                                 />
                             </div>
 
                             {/* Buttons */}
-                            <div className="flex gap-3 pt-2 pb-4 md:pb-0">
+                            <div className="upload-modal-actions">
                                 <button
                                     onClick={handleClose}
-                                    className="flex-1 py-2.5 md:py-3 rounded-lg bg-gray-700 text-white text-sm md:text-base font-medium hover:bg-gray-600 transition-colors"
+                                    className="upload-modal-cancel-btn"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleSave}
                                     disabled={isSaving || !categoryId || !amount}
-                                    className="flex-1 py-2.5 md:py-3 rounded-lg bg-primary text-white text-sm md:text-base font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="upload-modal-save-btn"
                                 >
                                     {isSaving ? (
                                         <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <Loader2 className="upload-modal-processing-spinner" />
                                             Saving...
                                         </>
                                     ) : (
                                         <>
-                                            <Save className="w-4 h-4" />
+                                            <Save />
                                             Save
                                         </>
                                     )}
@@ -503,42 +487,42 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
 
             {/* Zoom Modal */}
             {showZoomModal && imageUrl && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90">
+                <div className="upload-modal-zoom-overlay">
                     {/* Close button */}
                     <button
                         onClick={() => setShowZoomModal(false)}
-                        className="absolute top-4 right-4 p-2 bg-white/10 rounded-lg text-white hover:bg-white/20 transition-colors z-10"
+                        className="upload-modal-zoom-close"
                     >
-                        <X className="w-6 h-6" />
+                        <X />
                     </button>
 
                     {/* Zoom controls */}
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/70 rounded-xl p-2 z-10">
+                    <div className="upload-modal-zoom-controls">
                         <button
                             onClick={handleZoomOut}
-                            className="p-2 rounded-lg text-white hover:bg-white/20 transition-colors"
+                            className="upload-modal-zoom-ctrl-btn"
                         >
-                            <ZoomOut className="w-5 h-5" />
+                            <ZoomOut />
                         </button>
-                        <span className="text-white text-sm min-w-[60px] text-center">
+                        <span className="upload-modal-zoom-level">
                             {Math.round(zoomLevel * 100)}%
                         </span>
                         <button
                             onClick={handleZoomIn}
-                            className="p-2 rounded-lg text-white hover:bg-white/20 transition-colors"
+                            className="upload-modal-zoom-ctrl-btn"
                         >
-                            <ZoomIn className="w-5 h-5" />
+                            <ZoomIn />
                         </button>
                         <button
                             onClick={handleZoomReset}
-                            className="p-2 rounded-lg text-white hover:bg-white/20 transition-colors"
+                            className="upload-modal-zoom-ctrl-btn"
                         >
-                            <RotateCcw className="w-5 h-5" />
+                            <RotateCcw />
                         </button>
                     </div>
 
                     {/* Zoomable image */}
-                    <div className="w-full h-full overflow-auto flex items-center justify-center p-8">
+                    <div className="upload-modal-zoom-image-container">
                         <img
                             src={imageUrl}
                             alt="Receipt zoomed"
@@ -547,7 +531,7 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                 maxWidth: `${zoomLevel * 100}%`,
                                 height: 'auto'
                             }}
-                            className="transition-all duration-200 object-contain"
+                            className="upload-modal-zoom-image"
                         />
                     </div>
                 </div>
