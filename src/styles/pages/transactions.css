@@ -440,6 +440,31 @@
     border-radius: var(--radius-lg);
 }
 
+/* PDF icon container */
+.trans-item-pdf {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+@media (min-width: 768px) {
+    .trans-item-pdf {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+.trans-item-pdf-icon {
+    width: 24px;
+    height: 24px;
+    color: #ef4444;
+}
+
 .trans-item-content {
     flex: 1;
     min-width: 0;

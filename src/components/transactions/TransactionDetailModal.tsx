@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { X, Edit2, Trash2, Download, ZoomIn, Check } from 'lucide-react';
+import { X, Edit2, Trash2, Download, ZoomIn, Check, FileText } from 'lucide-react';
 import { expensesApi, Expense } from '../../lib/api';
 import { useToast } from '../../contexts/ToastContext';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -25,6 +25,7 @@ export function TransactionDetailModal({
     const [isDeleting, setIsDeleting] = useState(false);
     const [isZoomed, setIsZoomed] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showPdfViewer, setShowPdfViewer] = useState(false);
 
     if (!isOpen || !expense) return null;
 
@@ -48,6 +49,45 @@ export function TransactionDetailModal({
     };
 
     const handleDownloadReceipt = async () => {
+        // Handle PDF download
+        if (expense.attachment_type === 'pdf' && expense.attachment_data) {
+            try {
+                // Convert base64 to blob
+                const base64Data = expense.attachment_data.split(',')[1] || expense.attachment_data;
+                const byteCharacters = atob(base64Data);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+
+                // Generate filename
+                const dateStr = format(new Date(expense.expense_date), 'yyyy-MM-dd');
+                const categoryName = expense.category?.name || 'invoice';
+                link.download = `invoice_${categoryName}_${dateStr}.pdf`;
+
+                // Trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Cleanup
+                window.URL.revokeObjectURL(url);
+                showToast('success', 'PDF berhasil didownload');
+            } catch (error) {
+                console.error('Error downloading PDF:', error);
+                showToast('error', 'Gagal mendownload PDF');
+            }
+            return;
+        }
+
+        // Handle image download
         if (!expense.receipt_url) return;
 
         try {
@@ -85,6 +125,9 @@ export function TransactionDetailModal({
         onUpdate();
         showToast('success', 'Transaksi berhasil diperbarui');
     };
+
+    // Check if expense has any attachment
+    const hasAttachment = expense.receipt_url || (expense.attachment_type === 'pdf' && expense.attachment_data);
 
     return (
         <div className="tdm-overlay">
@@ -142,6 +185,17 @@ export function TransactionDetailModal({
                                     <div className="tdm-receipt-overlay">
                                         <ZoomIn className="tdm-icon-lg" />
                                     </div>
+                                </div>
+                            )}
+
+                            {/* PDF Indicator - Clickable */}
+                            {expense.attachment_type === 'pdf' && expense.attachment_data && (
+                                <div
+                                    className="tdm-pdf-container tdm-pdf-clickable"
+                                    onClick={() => setShowPdfViewer(true)}
+                                >
+                                    <FileText className="tdm-pdf-icon" />
+                                    <span className="tdm-pdf-label">Klik untuk lihat PDF</span>
                                 </div>
                             )}
 
@@ -204,7 +258,7 @@ export function TransactionDetailModal({
                 {/* Actions */}
                 {!isEditing && (
                     <div className="tdm-actions">
-                        {expense.receipt_url && (
+                        {hasAttachment && (
                             <button
                                 onClick={handleDownloadReceipt}
                                 className="tdm-btn-secondary"
@@ -276,6 +330,25 @@ export function TransactionDetailModal({
                                 {isDeleting ? 'Menghapus...' : 'Hapus'}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* PDF Viewer Modal */}
+            {showPdfViewer && expense.attachment_type === 'pdf' && expense.attachment_data && (
+                <div className="tdm-zoom-overlay">
+                    <button
+                        className="tdm-zoom-close"
+                        onClick={() => setShowPdfViewer(false)}
+                    >
+                        <X className="tdm-icon-md" />
+                    </button>
+                    <div className="tdm-pdf-viewer">
+                        <iframe
+                            src={expense.attachment_data}
+                            title="PDF Viewer"
+                            className="tdm-pdf-iframe"
+                        />
                     </div>
                 </div>
             )}

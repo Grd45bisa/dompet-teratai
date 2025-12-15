@@ -29,6 +29,8 @@ export interface Expense {
     description: string | null;
     expense_date: string;
     receipt_url: string | null;
+    attachment_type: 'image' | 'pdf' | null;
+    attachment_data: string | null;
     ai_processed: boolean;
     created_at: string;
     updated_at: string;

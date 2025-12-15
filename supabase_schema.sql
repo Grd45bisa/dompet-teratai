@@ -68,7 +68,9 @@ CREATE TABLE IF NOT EXISTS public.expenses (
     amount DECIMAL(15, 2) NOT NULL CHECK (amount > 0),  -- Jumlah dalam Rupiah
     description TEXT,                              -- Catatan/deskripsi
     expense_date DATE NOT NULL,                    -- Tanggal pengeluaran
-    receipt_url TEXT,                              -- URL struk dari Supabase Storage
+    receipt_url TEXT,                              -- Base64 gambar struk
+    attachment_type TEXT,                          -- Tipe attachment: 'image' | 'pdf'
+    attachment_data TEXT,                          -- Base64 data PDF
     ai_processed BOOLEAN DEFAULT FALSE,            -- Flag: diproses oleh AI
     ai_raw_response JSONB,                         -- Response mentah dari AI (opsional)
     created_at TIMESTAMPTZ DEFAULT NOW(),

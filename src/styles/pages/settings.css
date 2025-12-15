@@ -361,7 +361,22 @@
 .settings-app-name {
     font-size: var(--text-lg);
     font-weight: var(--font-bold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.settings-brand-dompet {
     color: var(--color-primary);
+}
+
+.settings-brand-teratai {
+    color: var(--color-text-gray);
+}
+
+.dark .settings-brand-teratai {
+    color: var(--color-text-white);
 }
 
 .settings-app-version {

@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { authMiddleware } from '../middleware/auth';
 import { AuthRequest, CreateCategoryRequest } from '../types';
+import { emitToUser, SocketEvents } from '../config/socket';
 
 const router = Router();
 
@@ -74,6 +75,9 @@ router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
             return;
         }
 
+        // Emit WebSocket event
+        emitToUser(req.user.id, SocketEvents.CATEGORY_CREATED, data);
+
         res.status(201).json({ success: true, data });
     } catch (error) {
         console.error('Create category error:', error);
@@ -136,6 +140,9 @@ router.put('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
             return;
         }
 
+        // Emit WebSocket event
+        emitToUser(req.user.id, SocketEvents.CATEGORY_UPDATED, data);
+
         res.json({ success: true, data });
     } catch (error) {
         console.error('Update category error:', error);
@@ -190,6 +197,9 @@ router.delete('/:id', async (req: AuthRequest, res: Response): Promise<void> => 
             res.status(500).json({ success: false, error: 'Failed to delete category' });
             return;
         }
+
+        // Emit WebSocket event
+        emitToUser(req.user.id, SocketEvents.CATEGORY_DELETED, { id });
 
         res.json({ success: true, data: { id } });
     } catch (error) {

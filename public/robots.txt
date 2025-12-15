@@ -1,0 +1,37 @@
+# Robots.txt for Dompet Teratai
+# https://dompet.teratai.web.id
+
+# Allow all search engine crawlers
+User-agent: *
+Allow: /
+
+# Allow specific crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Yandex
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+# Disallow private/API paths (these are typically handled by backend)
+Disallow: /api/
+Disallow: /.env
+Disallow: /node_modules/
+Disallow: /src/
+
+# Sitemap location
+Sitemap: https://dompet.teratai.web.id/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
+
+# Host directive
+Host: https://dompet.teratai.web.id

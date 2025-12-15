@@ -365,6 +365,9 @@
 .dashboard-stat-label {
     font-size: var(--text-xs);
     color: var(--color-text-gray);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .dashboard-stat-value {

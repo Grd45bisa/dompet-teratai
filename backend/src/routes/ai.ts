@@ -4,6 +4,7 @@ import { authMiddleware } from '../middleware/auth';
 import { AuthRequest } from '../types';
 import FormData from 'form-data';
 import axios from 'axios';
+import sharp from 'sharp';
 
 const router = Router();
 
@@ -66,6 +67,37 @@ function base64ToBuffer(base64String: string): { buffer: Buffer; mimeType: strin
 }
 
 /**
+ * Compress image for AI processing while maintaining detail
+ * Max width 1500px, 85% quality JPEG - optimal for OCR
+ */
+async function compressImageForAI(buffer: Buffer, mimeType: string): Promise<{ buffer: Buffer; mimeType: string }> {
+    // Skip compression for PDF
+    if (mimeType === 'application/pdf') {
+        return { buffer, mimeType };
+    }
+
+    try {
+        const compressed = await sharp(buffer)
+            .resize(1500, null, {
+                withoutEnlargement: true,  // Don't upscale small images
+                fit: 'inside'
+            })
+            .jpeg({ quality: 85 })  // Good quality for OCR
+            .toBuffer();
+
+        console.log(`🗜️ Compressed image: ${buffer.length} bytes → ${compressed.length} bytes (${Math.round((1 - compressed.length / buffer.length) * 100)}% reduction)`);
+
+        return {
+            buffer: compressed,
+            mimeType: 'image/jpeg',
+        };
+    } catch (error) {
+        console.error('Image compression failed, using original:', error);
+        return { buffer, mimeType };
+    }
+}
+
+/**
  * POST /api/ai/analyze-receipt
  * Send image to n8n for AI OCR processing
  */
@@ -85,8 +117,12 @@ router.post('/analyze-receipt', authMiddleware, async (req: AuthRequest, res: Re
 
         console.log('📸 Received image for AI analysis, size:', Math.round(image.length / 1024), 'KB');
 
-        // Convert base64 to buffer for file upload
-        const { buffer, mimeType } = base64ToBuffer(image);
+        // Convert base64 to buffer
+        const { buffer: originalBuffer, mimeType: originalMimeType } = base64ToBuffer(image);
+
+        // Compress image for AI processing (keeps detail but reduces size)
+        const { buffer, mimeType } = await compressImageForAI(originalBuffer, originalMimeType);
+
         const extension = mimeType.split('/')[1] || 'jpg';
         const uploadFilename = filename || `receipt.${extension}`;
 
@@ -204,14 +240,14 @@ router.post('/save-expense', authMiddleware, async (req: AuthRequest, res: Respo
             return;
         }
 
-        const { category_id, amount, expense_date, description, receipt_url } = req.body;
+        const { category_id, amount, expense_date, description, receipt_url, attachment_type, attachment_data } = req.body;
 
         if (!amount || amount <= 0) {
             res.status(400).json({ success: false, error: 'Invalid amount' });
             return;
         }
 
-        // receipt_url is base64 - store directly
+        // receipt_url is base64 for images, attachment_data is for PDF
         const { data, error } = await supabase
             .from('expenses')
             .insert({
@@ -221,6 +257,8 @@ router.post('/save-expense', authMiddleware, async (req: AuthRequest, res: Respo
                 expense_date: expense_date || new Date().toISOString().split('T')[0],
                 description: description || null,
                 receipt_url: receipt_url || null,
+                attachment_type: attachment_type || null,
+                attachment_data: attachment_data || null,
                 ai_processed: true,
             })
             .select('*, category:categories(*)')

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, memo } from 'react';
+import { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import { format, startOfMonth, endOfMonth, subDays } from 'date-fns';
 import { id } from 'date-fns/locale';
 import {
@@ -32,6 +32,7 @@ import { Link } from 'react-router-dom';
 import { expensesApi } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { formatCurrency, formatCompactCurrency } from '../utils/formatCurrency';
+import { useSocketEvent, SocketEvents } from '../contexts/SocketContext';
 import type { Expense } from '../types';
 
 interface DailyData {
@@ -232,7 +233,8 @@ export function Dashboard() {
     const cacheKey = user ? `expenses_cache_${user.id}` : null;
     const isDemoMode = localStorage.getItem('demo_mode') === 'true';
 
-    useEffect(() => {
+    // Fetch data function
+    const fetchData = useCallback(async () => {
         if (isDemoMode) {
             try {
                 const demoExpenses = JSON.parse(localStorage.getItem('demo_expenses') || '[]');
@@ -246,6 +248,35 @@ export function Dashboard() {
 
         if (!user || !cacheKey) return;
 
+        const monthStart = startOfMonth(new Date());
+        const monthEnd = endOfMonth(new Date());
+
+        const result = await expensesApi.getExpenses({
+            from: format(monthStart, 'yyyy-MM-dd'),
+            to: format(monthEnd, 'yyyy-MM-dd'),
+        });
+
+        if (result.success && result.data) {
+            setExpenses(result.data as Expense[]);
+            localStorage.setItem(cacheKey, JSON.stringify({
+                data: result.data,
+                timestamp: Date.now(),
+            }));
+        }
+
+        setIsLoading(false);
+    }, [user, cacheKey, isDemoMode]);
+
+    // Initial data load with cache
+    useEffect(() => {
+        if (isDemoMode) {
+            fetchData();
+            return;
+        }
+
+        if (!user || !cacheKey) return;
+
+        // Try cache first
         const cached = localStorage.getItem(cacheKey);
         if (cached) {
             try {
@@ -259,28 +290,24 @@ export function Dashboard() {
             }
         }
 
-        const fetchData = async () => {
-            const monthStart = startOfMonth(new Date());
-            const monthEnd = endOfMonth(new Date());
-
-            const result = await expensesApi.getExpenses({
-                from: format(monthStart, 'yyyy-MM-dd'),
-                to: format(monthEnd, 'yyyy-MM-dd'),
-            });
-
-            if (result.success && result.data) {
-                setExpenses(result.data as Expense[]);
-                localStorage.setItem(cacheKey, JSON.stringify({
-                    data: result.data,
-                    timestamp: Date.now(),
-                }));
-            }
-
-            setIsLoading(false);
-        };
-
         fetchData();
-    }, [user, cacheKey, isDemoMode]);
+    }, [user, cacheKey, isDemoMode, fetchData]);
+
+    // WebSocket event listeners for real-time updates
+    useSocketEvent(SocketEvents.EXPENSE_CREATED, useCallback(() => {
+        console.log('📥 New expense received via WebSocket');
+        fetchData();
+    }, [fetchData]));
+
+    useSocketEvent(SocketEvents.EXPENSE_UPDATED, useCallback(() => {
+        console.log('📝 Expense updated via WebSocket');
+        fetchData();
+    }, [fetchData]));
+
+    useSocketEvent(SocketEvents.EXPENSE_DELETED, useCallback(() => {
+        console.log('🗑️ Expense deleted via WebSocket');
+        fetchData();
+    }, [fetchData]));
 
     // Stats calculation
     const stats = useMemo(() => {

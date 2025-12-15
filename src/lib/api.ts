@@ -3,7 +3,7 @@
  * Handles all HTTP requests to the backend server
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3100/api';
 
 // Storage keys
 const TOKEN_KEY = 'expense_tracker_token';
@@ -263,6 +263,8 @@ export const aiApi = {
         expense_date: string;
         description?: string;
         receipt_url?: string;
+        attachment_type?: 'image' | 'pdf';
+        attachment_data?: string;
     }) {
         return fetchApi<Expense>('/ai/save-expense', {
             method: 'POST',
@@ -307,6 +309,8 @@ export interface Expense {
     description: string | null;
     expense_date: string;
     receipt_url: string | null;
+    attachment_type: 'image' | 'pdf' | null;
+    attachment_data: string | null;
     ai_processed: boolean;
     created_at: string;
     updated_at: string;
@@ -318,6 +322,8 @@ export interface CreateExpenseData {
     description?: string;
     expense_date: string;
     receipt_url?: string;
+    attachment_type?: 'image' | 'pdf';
+    attachment_data?: string;
 }
 
 export default {

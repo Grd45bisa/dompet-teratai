@@ -3,18 +3,21 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { SocketProvider } from './contexts/SocketContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/layout/Layout';
 
-// Lazy load pages for better performance
+// Main pages - direct import for no loading when navigating
+import Dashboard from './pages/Dashboard';
+import Transactions from './pages/Transactions';
+import Reports from './pages/Reports';
+import Settings from './pages/Settings';
+
+// Auth pages - lazy loaded (only needed once)
 const Login = lazy(() => import('./pages/Login'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 const CompleteProfile = lazy(() => import('./pages/CompleteProfile'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Transactions = lazy(() => import('./pages/Transactions'));
-const Reports = lazy(() => import('./pages/Reports'));
-const Settings = lazy(() => import('./pages/Settings'));
 
 // Loading fallback component
 function PageLoader() {
@@ -49,7 +52,9 @@ function App() {
                                     path="/"
                                     element={
                                         <ProtectedRoute>
-                                            <Layout />
+                                            <SocketProvider>
+                                                <Layout />
+                                            </SocketProvider>
                                         </ProtectedRoute>
                                     }
                                 >

@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { authMiddleware } from '../middleware/auth';
 import { AuthRequest, CreateExpenseRequest, UpdateExpenseRequest } from '../types';
+import { emitToUser, SocketEvents } from '../config/socket';
 
 const router = Router();
 
@@ -74,7 +75,7 @@ router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
             return;
         }
 
-        const { category_id, amount, description, expense_date, receipt_url } = req.body as CreateExpenseRequest;
+        const { category_id, amount, description, expense_date, receipt_url, attachment_type, attachment_data } = req.body as CreateExpenseRequest;
 
         // Validation
         if (!category_id || !amount || !expense_date) {
@@ -96,6 +97,8 @@ router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
                 description: description || null,
                 expense_date,
                 receipt_url: receipt_url || null,
+                attachment_type: attachment_type || null,
+                attachment_data: attachment_data || null,
             })
             .select('*, category:categories(*)')
             .single();
@@ -105,6 +108,9 @@ router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
             res.status(500).json({ success: false, error: 'Failed to create expense' });
             return;
         }
+
+        // Emit WebSocket event
+        emitToUser(req.user.id, SocketEvents.EXPENSE_CREATED, data);
 
         res.status(201).json({ success: true, data });
     } catch (error) {
@@ -155,6 +161,9 @@ router.put('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
             return;
         }
 
+        // Emit WebSocket event
+        emitToUser(req.user.id, SocketEvents.EXPENSE_UPDATED, data);
+
         res.json({ success: true, data });
     } catch (error) {
         console.error('Update expense error:', error);
@@ -197,6 +206,9 @@ router.delete('/:id', async (req: AuthRequest, res: Response): Promise<void> => 
             res.status(500).json({ success: false, error: 'Failed to delete expense' });
             return;
         }
+
+        // Emit WebSocket event
+        emitToUser(req.user.id, SocketEvents.EXPENSE_DELETED, { id });
 
         res.json({ success: true, data: { id } });
     } catch (error) {

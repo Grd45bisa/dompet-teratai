@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import { format, isToday, isYesterday, startOfMonth, endOfMonth } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Filter, Receipt, Trash2, Image, Calendar, ChevronRight, X } from 'lucide-react';
+import { Filter, Receipt, Trash2, Image, Calendar, ChevronRight, X, FileText } from 'lucide-react';
 import { expensesApi, categoriesApi, Expense, Category } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { useSocketEvent, SocketEvents } from '../contexts/SocketContext';
 import { formatCurrency } from '../utils/formatCurrency';
 import { TransactionDetailModal } from '../components/transactions/TransactionDetailModal';
 import { AIProcessingCard } from '../components/dashboard/AIProcessingCard';
@@ -45,8 +46,12 @@ const ExpenseItem = memo(({
         onClick={onClick}
         className="trans-item"
     >
-        {/* Category Icon/Receipt */}
-        {expense.receipt_url ? (
+        {/* Category Icon/Receipt/PDF */}
+        {expense.attachment_type === 'pdf' ? (
+            <div className="trans-item-pdf">
+                <FileText className="trans-item-pdf-icon" />
+            </div>
+        ) : expense.receipt_url ? (
             <div className="trans-item-receipt">
                 <img
                     src={expense.receipt_url}
@@ -82,7 +87,9 @@ const ExpenseItem = memo(({
                 >
                     {expense.category?.name || 'Lainnya'}
                 </span>
-                {expense.receipt_url && (
+                {expense.attachment_type === 'pdf' ? (
+                    <FileText className="trans-item-image-icon" />
+                ) : expense.receipt_url && (
                     <Image className="trans-item-image-icon" />
                 )}
             </div>
@@ -204,6 +211,37 @@ export function Transactions() {
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    // WebSocket event listeners for real-time updates
+    useSocketEvent(SocketEvents.EXPENSE_CREATED, useCallback(() => {
+        console.log('📥 New expense received via WebSocket');
+        fetchData();
+    }, [fetchData]));
+
+    useSocketEvent(SocketEvents.EXPENSE_UPDATED, useCallback(() => {
+        console.log('📝 Expense updated via WebSocket');
+        fetchData();
+    }, [fetchData]));
+
+    useSocketEvent(SocketEvents.EXPENSE_DELETED, useCallback(() => {
+        console.log('🗑️ Expense deleted via WebSocket');
+        fetchData();
+    }, [fetchData]));
+
+    useSocketEvent(SocketEvents.CATEGORY_CREATED, useCallback(() => {
+        console.log('📁 Category created via WebSocket');
+        fetchData();
+    }, [fetchData]));
+
+    useSocketEvent(SocketEvents.CATEGORY_UPDATED, useCallback(() => {
+        console.log('📁 Category updated via WebSocket');
+        fetchData();
+    }, [fetchData]));
+
+    useSocketEvent(SocketEvents.CATEGORY_DELETED, useCallback(() => {
+        console.log('📁 Category deleted via WebSocket');
+        fetchData();
+    }, [fetchData]));
 
     // Group by date
     const groupedExpenses = useMemo((): GroupedExpenses => {

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Camera, Loader2, Sparkles, Save, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { X, Loader2, Sparkles, Save, ZoomIn, ZoomOut, RotateCcw, Plus, FileText } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { aiApi, categoriesApi, expensesApi, Category } from '../../lib/api';
 import { format } from 'date-fns';
@@ -59,8 +59,9 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const dropZoneRef = useRef<HTMLDivElement>(null);
 
-    // Image state
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    // File state
+    const [fileUrl, setFileUrl] = useState<string | null>(null);
+    const [fileType, setFileType] = useState<'image' | 'pdf' | null>(null);
     const [isCompressing, setIsCompressing] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(0.5);
     const [showZoomModal, setShowZoomModal] = useState(false);
@@ -92,7 +93,8 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
 
     // Reset form on close
     const resetForm = () => {
-        setImageUrl(null);
+        setFileUrl(null);
+        setFileType(null);
         setStoreName('');
         setCategoryId('');
         setAmount('');
@@ -110,8 +112,11 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
 
     // Handle file selection
     const handleFileSelect = async (file: File) => {
-        if (!file.type.startsWith('image/')) {
-            alert('Hanya file gambar yang diperbolehkan');
+        const isImage = file.type.startsWith('image/');
+        const isPdf = file.type === 'application/pdf';
+
+        if (!isImage && !isPdf) {
+            alert('Hanya file gambar atau PDF yang diperbolehkan');
             return;
         }
 
@@ -122,12 +127,30 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
 
         setIsCompressing(true);
         try {
-            const compressed = await compressImage(file);
-            setImageUrl(compressed);
+            if (isImage) {
+                const compressed = await compressImage(file);
+                setFileUrl(compressed);
+                setFileType('image');
+                setIsCompressing(false);
+            } else {
+                // For PDF, convert to base64
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (e.target?.result) {
+                        setFileUrl(e.target.result as string);
+                        setFileType('pdf');
+                    }
+                    setIsCompressing(false);
+                };
+                reader.onerror = () => {
+                    alert('Gagal membaca file PDF');
+                    setIsCompressing(false);
+                };
+                reader.readAsDataURL(file);
+            }
         } catch (error) {
-            console.error('Compression error:', error);
-            alert('Gagal memproses gambar');
-        } finally {
+            console.error('File processing error:', error);
+            alert('Gagal memproses file');
             setIsCompressing(false);
         }
     };
@@ -157,11 +180,12 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
 
     // Analyze receipt with AI
     const handleAnalyze = async () => {
-        if (!imageUrl) return;
+        if (!fileUrl) return;
 
         setIsAnalyzing(true);
         try {
-            const result = await aiApi.analyzeReceipt(imageUrl, 'receipt.jpg');
+            const fileName = fileType === 'pdf' ? 'receipt.pdf' : 'receipt.jpg';
+            const result = await aiApi.analyzeReceipt(fileUrl, fileName);
 
             if (result.success && result.data) {
                 const data = result.data;
@@ -211,7 +235,9 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                 amount: parseFloat(amount),
                 expense_date: expenseDate,
                 description: description || undefined,
-                receipt_url: imageUrl || undefined,
+                receipt_url: fileType === 'image' && fileUrl ? fileUrl : undefined,
+                attachment_type: fileType || undefined,
+                attachment_data: fileType === 'pdf' && fileUrl ? fileUrl : undefined,
             });
 
             if (result.success) {
@@ -258,7 +284,7 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                 <div className="upload-modal-container">
                     {/* Header */}
                     <div className="upload-modal-header">
-                        <h2 className="upload-modal-title">Add New Expense</h2>
+                        <h2 className="upload-modal-title">Tambah Pengeluaran Baru</h2>
                         <button
                             onClick={handleClose}
                             className="upload-modal-close-btn"
@@ -273,35 +299,50 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                         <div className="upload-modal-left">
                             <div
                                 ref={dropZoneRef}
-                                onClick={() => !imageUrl && fileInputRef.current?.click()}
+                                onClick={() => !fileUrl && fileInputRef.current?.click()}
+                                onTouchEnd={(e) => {
+                                    if (!fileUrl) {
+                                        e.preventDefault();
+                                        fileInputRef.current?.click();
+                                    }
+                                }}
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
-                                className={`upload-modal-dropzone ${isDragging ? 'upload-modal-dropzone-active' : ''} ${imageUrl ? 'upload-modal-dropzone-has-image' : ''}`}
+                                className={`upload-modal-dropzone ${isDragging ? 'upload-modal-dropzone-active' : ''} ${fileUrl ? 'upload-modal-dropzone-has-image' : ''}`}
                             >
                                 {isCompressing ? (
                                     <div className="upload-modal-processing">
                                         <Loader2 className="upload-modal-processing-spinner" />
-                                        <p className="upload-modal-processing-text">Processing...</p>
+                                        <p className="upload-modal-processing-text">Memproses...</p>
                                     </div>
-                                ) : imageUrl ? (
+                                ) : fileUrl ? (
                                     <>
-                                        <img
-                                            src={imageUrl}
-                                            alt="Receipt"
-                                            className="upload-modal-preview-img"
-                                        />
-                                        {/* Zoom button overlay */}
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setShowZoomModal(true);
-                                            }}
-                                            className="upload-modal-img-btn upload-modal-zoom-btn"
-                                        >
-                                            <ZoomIn />
-                                        </button>
-                                        {/* Change image button */}
+                                        {fileType === 'image' ? (
+                                            <img
+                                                src={fileUrl}
+                                                alt="Receipt"
+                                                className="upload-modal-preview-img"
+                                            />
+                                        ) : (
+                                            <div className="upload-modal-pdf-preview">
+                                                <FileText className="upload-modal-pdf-icon" />
+                                                <p className="upload-modal-pdf-text">Invoice PDF</p>
+                                            </div>
+                                        )}
+                                        {/* Zoom button overlay - only for images */}
+                                        {fileType === 'image' && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setShowZoomModal(true);
+                                                }}
+                                                className="upload-modal-img-btn upload-modal-zoom-btn"
+                                            >
+                                                <ZoomIn />
+                                            </button>
+                                        )}
+                                        {/* Change file button */}
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -309,17 +350,17 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                             }}
                                             className="upload-modal-img-btn upload-modal-change-btn"
                                         >
-                                            Change
+                                            Ganti
                                         </button>
                                     </>
                                 ) : (
                                     <>
                                         <div className="upload-modal-dropzone-icon-wrapper">
-                                            <Camera />
+                                            <Plus />
                                         </div>
                                         <div className="upload-modal-dropzone-text-wrapper">
-                                            <p className="upload-modal-dropzone-title">Upload Receipt</p>
-                                            <p className="upload-modal-dropzone-subtitle">Click or drag file here</p>
+                                            <p className="upload-modal-dropzone-title">Upload Struk</p>
+                                            <p className="upload-modal-dropzone-subtitle">Gambar atau PDF</p>
                                         </div>
                                         <span className="upload-modal-dropzone-badge">
                                             Max 10MB
@@ -328,11 +369,11 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                 )}
                             </div>
 
+                            {/* File input - images and PDF */}
                             <input
                                 ref={fileInputRef}
                                 type="file"
-                                accept="image/*"
-                                capture="environment"
+                                accept="image/*,.pdf,application/pdf"
                                 onChange={handleFileChange}
                                 className="upload-modal-hidden"
                             />
@@ -340,18 +381,18 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                             {/* Analyze Button */}
                             <button
                                 onClick={handleAnalyze}
-                                disabled={!imageUrl || isAnalyzing}
-                                className={`upload-modal-analyze-btn ${imageUrl ? 'upload-modal-analyze-btn-active' : ''}`}
+                                disabled={!fileUrl || isAnalyzing}
+                                className={`upload-modal-analyze-btn ${fileUrl ? 'upload-modal-analyze-btn-active' : ''}`}
                             >
                                 {isAnalyzing ? (
                                     <>
                                         <Loader2 className="upload-modal-processing-spinner" />
-                                        Analyzing...
+                                        Menganalisis...
                                     </>
                                 ) : (
                                     <>
                                         <Sparkles />
-                                        Analyze Receipt
+                                        Analisis Struk
                                     </>
                                 )}
                             </button>
@@ -362,13 +403,13 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                             {/* Store Name */}
                             <div className="upload-modal-form-group">
                                 <label className="upload-modal-label">
-                                    Store Name *
+                                    Nama Toko *
                                 </label>
                                 <input
                                     type="text"
                                     value={storeName}
                                     onChange={(e) => setStoreName(e.target.value)}
-                                    placeholder="e.g. BreadTalk, Walmart"
+                                    placeholder="contoh: Indomaret, Alfamart"
                                     className="upload-modal-input"
                                 />
                             </div>
@@ -376,14 +417,14 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                             {/* Category */}
                             <div className="upload-modal-form-group">
                                 <label className="upload-modal-label">
-                                    Category *
+                                    Kategori *
                                 </label>
                                 <select
                                     value={categoryId}
                                     onChange={(e) => setCategoryId(e.target.value)}
                                     className="upload-modal-select"
                                 >
-                                    <option value="">Select Category</option>
+                                    <option value="">Pilih Kategori</option>
                                     {categories.map((cat) => (
                                         <option key={cat.id} value={cat.id}>
                                             {cat.name}
@@ -395,7 +436,7 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                             {/* Amount */}
                             <div className="upload-modal-form-group">
                                 <label className="upload-modal-label">
-                                    Amount (Rp) *
+                                    Jumlah (Rp) *
                                 </label>
                                 <div className="upload-modal-amount-wrapper">
                                     <span className="upload-modal-amount-prefix">
@@ -415,7 +456,7 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                             {/* Date */}
                             <div className="upload-modal-form-group">
                                 <label className="upload-modal-label">
-                                    Date *
+                                    Tanggal *
                                 </label>
                                 <input
                                     type="date"
@@ -429,13 +470,13 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                             {/* Store Address - Hidden on mobile for less clutter */}
                             <div className="upload-modal-form-group upload-modal-desktop-only">
                                 <label className="upload-modal-label">
-                                    Store Address
+                                    Alamat Toko
                                 </label>
                                 <input
                                     type="text"
                                     value={storeAddress}
                                     onChange={(e) => setStoreAddress(e.target.value)}
-                                    placeholder="e.g. Main Street Mall"
+                                    placeholder="contoh: Mall Central Park"
                                     className="upload-modal-input"
                                 />
                             </div>
@@ -443,13 +484,13 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                             {/* Notes */}
                             <div className="upload-modal-form-group">
                                 <label className="upload-modal-label">
-                                    Notes
+                                    Catatan
                                 </label>
                                 <textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
                                     rows={2}
-                                    placeholder="Optional notes..."
+                                    placeholder="Catatan tambahan..."
                                     className="upload-modal-textarea"
                                 />
                             </div>
@@ -460,7 +501,7 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                     onClick={handleClose}
                                     className="upload-modal-cancel-btn"
                                 >
-                                    Cancel
+                                    Batal
                                 </button>
                                 <button
                                     onClick={handleSave}
@@ -470,12 +511,12 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                     {isSaving ? (
                                         <>
                                             <Loader2 className="upload-modal-processing-spinner" />
-                                            Saving...
+                                            Menyimpan...
                                         </>
                                     ) : (
                                         <>
                                             <Save />
-                                            Save
+                                            Simpan
                                         </>
                                     )}
                                 </button>
@@ -485,8 +526,8 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                 </div>
             </div>
 
-            {/* Zoom Modal */}
-            {showZoomModal && imageUrl && (
+            {/* Zoom Modal - only for images */}
+            {showZoomModal && fileUrl && fileType === 'image' && (
                 <div className="upload-modal-zoom-overlay">
                     {/* Close button */}
                     <button
@@ -524,7 +565,7 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                     {/* Zoomable image */}
                     <div className="upload-modal-zoom-image-container">
                         <img
-                            src={imageUrl}
+                            src={fileUrl}
                             alt="Receipt zoomed"
                             style={{
                                 width: `${zoomLevel * 100}%`,
