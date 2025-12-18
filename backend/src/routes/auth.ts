@@ -149,26 +149,49 @@ router.get('/google/callback', async (req: Request, res: Response): Promise<void
 
 /**
  * POST /api/auth/google
- * Alternative: Verify Google credential token (for @react-oauth/google flow)
+ * Verify Google credential token (for @react-oauth/google flow and mobile apps)
+ * Supports tokens from both web and Android clients
  */
 router.post('/google', async (req: Request, res: Response): Promise<void> => {
     try {
-        const { credential } = req.body;
+        const { credential, id_token, platform } = req.body;
+        const token = credential || id_token;
 
-        if (!credential) {
-            res.status(400).json({ success: false, error: 'No credential provided' });
+        if (!token) {
+            res.status(400).json({ success: false, error: 'No credential or id_token provided' });
             return;
         }
 
-        // Verify Google token
-        const ticket = await googleClient.verifyIdToken({
-            idToken: credential,
-            audience: GOOGLE_CLIENT_ID,
-        });
+        // Determine which client IDs to accept based on platform
+        const validAudiences = [GOOGLE_CLIENT_ID];
+        if (GOOGLE_ANDROID_CLIENT_ID) {
+            validAudiences.push(GOOGLE_ANDROID_CLIENT_ID);
+        }
 
-        const payload = ticket.getPayload();
+        console.log(`🔐 Verifying Google token for platform: ${platform || 'web'}`);
+        console.log('📱 Valid audiences:', validAudiences);
+
+        // Verify Google token with multiple possible audiences
+        let payload;
+        for (const audience of validAudiences) {
+            try {
+                const ticket = await googleClient.verifyIdToken({
+                    idToken: token,
+                    audience: audience,
+                });
+                payload = ticket.getPayload();
+                if (payload) {
+                    console.log(`✅ Token verified with audience: ${audience}`);
+                    break;
+                }
+            } catch (e) {
+                // Continue to next audience
+                console.log(`❌ Token verification failed for audience: ${audience}`);
+            }
+        }
+
         if (!payload) {
-            res.status(401).json({ success: false, error: 'Invalid token' });
+            res.status(401).json({ success: false, error: 'Invalid token - could not verify with any audience' });
             return;
         }
 
@@ -212,6 +235,8 @@ router.post('/google', async (req: Request, res: Response): Promise<void> => {
 
             existingUser = data;
         }
+
+        console.log(`✅ User authenticated: ${email}`);
 
         res.json({
             success: true,
