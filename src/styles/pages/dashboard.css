@@ -332,6 +332,14 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--spacing-3);
+    width: 100%;
+}
+
+@media (max-width: 767px) {
+    .dashboard-stats-grid {
+        max-width: 100%;
+        margin: 0;
+    }
 }
 
 .dashboard-stat-card {
@@ -340,6 +348,8 @@
     padding: var(--spacing-4);
     border: 1px solid var(--color-border-light);
     box-shadow: var(--shadow-sm);
+    min-width: 0;
+    overflow: hidden;
 }
 
 .dark .dashboard-stat-card {
@@ -355,6 +365,7 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-3);
+    min-width: 0;
 }
 
 .dashboard-stat-info {

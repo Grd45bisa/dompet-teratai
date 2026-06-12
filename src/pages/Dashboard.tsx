@@ -230,7 +230,6 @@ export function Dashboard() {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const cacheKey = user ? `expenses_cache_${user.id}` : null;
     const isDemoMode = localStorage.getItem('demo_mode') === 'true';
 
     // Fetch data function
@@ -246,7 +245,7 @@ export function Dashboard() {
             return;
         }
 
-        if (!user || !cacheKey) return;
+        if (!user) return;
 
         const monthStart = startOfMonth(new Date());
         const monthEnd = endOfMonth(new Date());
@@ -258,14 +257,10 @@ export function Dashboard() {
 
         if (result.success && result.data) {
             setExpenses(result.data as Expense[]);
-            localStorage.setItem(cacheKey, JSON.stringify({
-                data: result.data,
-                timestamp: Date.now(),
-            }));
         }
 
         setIsLoading(false);
-    }, [user, cacheKey, isDemoMode]);
+    }, [user, isDemoMode]);
 
     // Initial data load with cache
     useEffect(() => {
@@ -274,24 +269,10 @@ export function Dashboard() {
             return;
         }
 
-        if (!user || !cacheKey) return;
-
-        // Try cache first
-        const cached = localStorage.getItem(cacheKey);
-        if (cached) {
-            try {
-                const { data, timestamp } = JSON.parse(cached);
-                if (Date.now() - timestamp < 5 * 60 * 1000) {
-                    setExpenses(data);
-                    setIsLoading(false);
-                }
-            } catch (e) {
-                console.error('Cache parse error');
-            }
-        }
+        if (!user) return;
 
         fetchData();
-    }, [user, cacheKey, isDemoMode, fetchData]);
+    }, [user, isDemoMode, fetchData]);
 
     // WebSocket event listeners for real-time updates
     useSocketEvent(SocketEvents.EXPENSE_CREATED, useCallback(() => {

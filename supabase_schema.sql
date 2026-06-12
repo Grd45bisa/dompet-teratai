@@ -1,124 +1,168 @@
+-- ============================================================-- DOMPET TERATAI / EXPENSE TRACKER - SUPABASE DATABASE SCHEMA
 -- ============================================================
--- 🌸 DOMPET TERATAI - Database Schema untuk Supabase
+-- Cara pakai:
+-- 1. Buka Supabase Dashboard > SQL Editor.
+-- 2. Copy semua isi file ini.
+-- 3. Klik Run.
+--
+-- Catatan:
+-- - Backend memakai SUPABASE_SERVICE_KEY, jadi policy dibuat permisif untuk kebutuhan backend.
+-- - File gambar/PDF saat ini disimpan sebagai base64 di kolom receipt_url / attachment_data.
 -- ============================================================
--- Aplikasi Pencatat Pengeluaran Harian dengan AI
--- 
--- 📋 Cara Penggunaan:
--- 1. Buka Supabase Dashboard > SQL Editor
--- 2. Copy-paste seluruh isi file ini
--- 3. Klik "Run" untuk menjalankan
--- 4. Buat Storage Bucket "receipts" (lihat bagian 7)
+
 -- ============================================================
+-- 0. EXTENSIONS
+-- ============================================================
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- ============================================================
 -- 1. TABLE: users
 -- ============================================================
--- Menyimpan data user dari Google OAuth
 
 CREATE TABLE IF NOT EXISTS public.users (
-    id TEXT PRIMARY KEY,                          -- Google User ID (sub dari JWT)
-    email TEXT UNIQUE NOT NULL,                   -- Email dari Google
-    full_name TEXT,                               -- Nama lengkap
-    avatar_url TEXT,                              -- URL foto profil (Google/DiceBear)
-    business_type TEXT,                           -- Pekerjaan user
-    monthly_budget DECIMAL(15, 2) DEFAULT 0,      -- Budget bulanan dalam Rupiah
-    onboarding_completed BOOLEAN DEFAULT FALSE,   -- Status onboarding
-    dark_mode BOOLEAN DEFAULT FALSE,              -- Preferensi tema
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    full_name TEXT,
+    avatar_url TEXT,
+    business_type TEXT,
+    occupation TEXT,
+    monthly_budget NUMERIC(15, 2) NOT NULL DEFAULT 0,
+    onboarding_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    dark_mode BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Index untuk pencarian cepat berdasarkan email
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS occupation TEXT,
+    ADD COLUMN IF NOT EXISTS monthly_budget NUMERIC(15, 2) NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS dark_mode BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 
-COMMENT ON TABLE public.users IS 'Tabel user dari Google OAuth';
-COMMENT ON COLUMN public.users.id IS 'Google User ID (sub claim dari JWT)';
-COMMENT ON COLUMN public.users.monthly_budget IS 'Target budget bulanan dalam Rupiah';
+COMMENT ON TABLE public.users IS 'User aplikasi dari Google OAuth';
+COMMENT ON COLUMN public.users.id IS 'Google user id / sub claim';
+COMMENT ON COLUMN public.users.monthly_budget IS 'Budget bulanan user dalam Rupiah';
 
 -- ============================================================
 -- 2. TABLE: categories
 -- ============================================================
--- Kategori pengeluaran (default sistem + custom per user)
 
 CREATE TABLE IF NOT EXISTS public.categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id TEXT REFERENCES public.users(id) ON DELETE CASCADE,  -- NULL = kategori default
+    user_id TEXT REFERENCES public.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    color TEXT NOT NULL DEFAULT '#43A047',        -- Warna hex untuk UI
-    icon TEXT,                                    -- Nama icon (opsional)
-    is_default BOOLEAN DEFAULT FALSE,             -- TRUE = kategori sistem
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    color TEXT NOT NULL DEFAULT '#43A047',
+    icon TEXT,
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Index untuk query kategori per user
+ALTER TABLE public.categories
+    ADD COLUMN IF NOT EXISTS icon TEXT,
+    ADD COLUMN IF NOT EXISTS is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
 CREATE INDEX IF NOT EXISTS idx_categories_user_id ON public.categories(user_id);
 CREATE INDEX IF NOT EXISTS idx_categories_is_default ON public.categories(is_default);
+CREATE INDEX IF NOT EXISTS idx_categories_name ON public.categories(name);
 
-COMMENT ON TABLE public.categories IS 'Kategori pengeluaran (default + custom)';
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_default_categories_name
+    ON public.categories(LOWER(name))
+    WHERE user_id IS NULL AND is_default = TRUE;
+
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_user_categories_name
+    ON public.categories(user_id, LOWER(name))
+    WHERE user_id IS NOT NULL;
+
+COMMENT ON TABLE public.categories IS 'Kategori pengeluaran default sistem dan custom user';
 
 -- ============================================================
 -- 3. TABLE: expenses
 -- ============================================================
--- Data pengeluaran/transaksi
 
 CREATE TABLE IF NOT EXISTS public.expenses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id TEXT NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
-    amount DECIMAL(15, 2) NOT NULL CHECK (amount > 0),  -- Jumlah dalam Rupiah
-    description TEXT,                              -- Catatan/deskripsi
-    expense_date DATE NOT NULL,                    -- Tanggal pengeluaran
-    receipt_url TEXT,                              -- Base64 gambar struk
-    attachment_type TEXT,                          -- Tipe attachment: 'image' | 'pdf'
-    attachment_data TEXT,                          -- Base64 data PDF
-    ai_processed BOOLEAN DEFAULT FALSE,            -- Flag: diproses oleh AI
-    ai_raw_response JSONB,                         -- Response mentah dari AI (opsional)
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    amount NUMERIC(15, 2) NOT NULL CHECK (amount > 0),
+    description TEXT,
+    expense_date DATE NOT NULL,
+    receipt_url TEXT,
+    attachment_type TEXT CHECK (attachment_type IS NULL OR attachment_type IN ('image', 'pdf')),
+    attachment_data TEXT,
+    ai_processed BOOLEAN NOT NULL DEFAULT FALSE,
+    ai_raw_response JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Indexes untuk query yang sering digunakan
+ALTER TABLE public.expenses
+    ADD COLUMN IF NOT EXISTS receipt_url TEXT,
+    ADD COLUMN IF NOT EXISTS attachment_type TEXT,
+    ADD COLUMN IF NOT EXISTS attachment_data TEXT,
+    ADD COLUMN IF NOT EXISTS ai_processed BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS ai_raw_response JSONB,
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'expenses_attachment_type_check'
+    ) THEN
+        ALTER TABLE public.expenses
+            ADD CONSTRAINT expenses_attachment_type_check
+            CHECK (attachment_type IS NULL OR attachment_type IN ('image', 'pdf'));
+    END IF;
+END;
+$$;
+
 CREATE INDEX IF NOT EXISTS idx_expenses_user_id ON public.expenses(user_id);
+CREATE INDEX IF NOT EXISTS idx_expenses_category_id ON public.expenses(category_id);
 CREATE INDEX IF NOT EXISTS idx_expenses_expense_date ON public.expenses(expense_date);
 CREATE INDEX IF NOT EXISTS idx_expenses_user_date ON public.expenses(user_id, expense_date DESC);
-CREATE INDEX IF NOT EXISTS idx_expenses_category_id ON public.expenses(category_id);
 CREATE INDEX IF NOT EXISTS idx_expenses_created_at ON public.expenses(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_expenses_ai_processed ON public.expenses(ai_processed);
 
-COMMENT ON TABLE public.expenses IS 'Data pengeluaran/transaksi user';
+COMMENT ON TABLE public.expenses IS 'Data transaksi pengeluaran user';
 
 -- ============================================================
--- 4. FUNCTION & TRIGGER: Auto-update updated_at
+-- 4. TRIGGERS: updated_at
 -- ============================================================
 
-CREATE OR REPLACE FUNCTION update_updated_at_column()
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ LANGUAGE 'plpgsql';
+$$ LANGUAGE plpgsql;
 
--- Trigger untuk users
 DROP TRIGGER IF EXISTS update_users_updated_at ON public.users;
 CREATE TRIGGER update_users_updated_at
     BEFORE UPDATE ON public.users
     FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+    EXECUTE FUNCTION public.update_updated_at_column();
 
--- Trigger untuk expenses
 DROP TRIGGER IF EXISTS update_expenses_updated_at ON public.expenses;
 CREATE TRIGGER update_expenses_updated_at
     BEFORE UPDATE ON public.expenses
     FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+    EXECUTE FUNCTION public.update_updated_at_column();
 
 -- ============================================================
--- 5. INSERT: Default Categories
+-- 5. DEFAULT CATEGORIES
 -- ============================================================
--- Kategori default yang tersedia untuk semua user
--- Menggunakan warna yang eye-catching
 
-INSERT INTO public.categories (user_id, name, color, icon, is_default) VALUES
+INSERT INTO public.categories (user_id, name, color, icon, is_default)
+VALUES
     (NULL, 'Makanan & Minuman', '#E91E63', 'utensils', TRUE),
     (NULL, 'Transportasi', '#2196F3', 'car', TRUE),
     (NULL, 'Belanja', '#FF9800', 'shopping-bag', TRUE),
@@ -132,132 +176,195 @@ INSERT INTO public.categories (user_id, name, color, icon, is_default) VALUES
 ON CONFLICT DO NOTHING;
 
 -- ============================================================
--- 6. ROW LEVEL SECURITY (RLS)
+-- 6. ROW LEVEL SECURITY
 -- ============================================================
--- Keamanan data menggunakan Service Role Key di backend
 
--- Enable RLS
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 
--- ========== Policies untuk USERS ==========
-DROP POLICY IF EXISTS "Enable all for service role" ON public.users;
-CREATE POLICY "Enable all for service role" ON public.users
-    FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "users_service_role_all" ON public.users;
+CREATE POLICY "users_service_role_all" ON public.users
+    FOR ALL
+    USING (true)
+    WITH CHECK (true);
 
--- ========== Policies untuk CATEGORIES ==========
-DROP POLICY IF EXISTS "Enable read for all" ON public.categories;
-CREATE POLICY "Enable read for all" ON public.categories
-    FOR SELECT USING (true);
+DROP POLICY IF EXISTS "categories_select_all" ON public.categories;
+CREATE POLICY "categories_select_all" ON public.categories
+    FOR SELECT
+    USING (true);
 
-DROP POLICY IF EXISTS "Enable insert for authenticated" ON public.categories;
-CREATE POLICY "Enable insert for authenticated" ON public.categories
-    FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "categories_insert_all" ON public.categories;
+CREATE POLICY "categories_insert_all" ON public.categories
+    FOR INSERT
+    WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Enable update own categories" ON public.categories;
-CREATE POLICY "Enable update own categories" ON public.categories
-    FOR UPDATE USING (is_default = false);
+DROP POLICY IF EXISTS "categories_update_custom" ON public.categories;
+CREATE POLICY "categories_update_custom" ON public.categories
+    FOR UPDATE
+    USING (is_default = FALSE)
+    WITH CHECK (is_default = FALSE);
 
-DROP POLICY IF EXISTS "Enable delete own categories" ON public.categories;
-CREATE POLICY "Enable delete own categories" ON public.categories
-    FOR DELETE USING (is_default = false);
+DROP POLICY IF EXISTS "categories_delete_custom" ON public.categories;
+CREATE POLICY "categories_delete_custom" ON public.categories
+    FOR DELETE
+    USING (is_default = FALSE);
 
--- ========== Policies untuk EXPENSES ==========
-DROP POLICY IF EXISTS "Enable all for service role" ON public.expenses;
-CREATE POLICY "Enable all for service role" ON public.expenses
-    FOR ALL USING (true) WITH CHECK (true);
-
--- ============================================================
--- 7. STORAGE BUCKET: receipts
--- ============================================================
--- ⚠️ PENTING: Buat bucket ini MANUAL di Supabase Dashboard!
--- 
--- Langkah-langkah:
--- 1. Buka Supabase Dashboard > Storage
--- 2. Klik "New Bucket"
--- 3. Nama bucket: receipts
--- 4. Public: TRUE (agar gambar bisa diakses)
--- 5. MIME Types: image/jpeg, image/png, image/webp
--- 6. Max file size: 5MB
-
--- Storage policies (jalankan di SQL Editor setelah bucket dibuat)
--- INSERT INTO storage.buckets (id, name, public) VALUES ('receipts', 'receipts', true);
+DROP POLICY IF EXISTS "expenses_service_role_all" ON public.expenses;
+CREATE POLICY "expenses_service_role_all" ON public.expenses
+    FOR ALL
+    USING (true)
+    WITH CHECK (true);
 
 -- ============================================================
--- 8. VIEWS: Untuk Reporting
+-- 7. VIEWS
 -- ============================================================
 
--- View: Total expenses per kategori
 CREATE OR REPLACE VIEW public.v_expenses_by_category AS
-SELECT 
+SELECT
     e.user_id,
     c.id AS category_id,
-    c.name AS category_name,
-    c.color AS category_color,
-    COUNT(*) AS total_transactions,
-    SUM(e.amount) AS total_amount
+    COALESCE(c.name, 'Tanpa Kategori') AS category_name,
+    COALESCE(c.color, '#757575') AS category_color,
+    COUNT(e.id) AS total_transactions,
+    COALESCE(SUM(e.amount), 0) AS total_amount
 FROM public.expenses e
 LEFT JOIN public.categories c ON e.category_id = c.id
 GROUP BY e.user_id, c.id, c.name, c.color;
 
--- View: Monthly summary
 CREATE OR REPLACE VIEW public.v_monthly_summary AS
-SELECT 
+SELECT
     user_id,
-    DATE_TRUNC('month', expense_date) AS month,
-    COUNT(*) AS total_transactions,
-    SUM(amount) AS total_amount,
-    AVG(amount) AS avg_amount
+    DATE_TRUNC('month', expense_date)::DATE AS month,
+    COUNT(id) AS total_transactions,
+    COALESCE(SUM(amount), 0) AS total_amount,
+    COALESCE(AVG(amount), 0) AS avg_amount
 FROM public.expenses
 GROUP BY user_id, DATE_TRUNC('month', expense_date)
 ORDER BY month DESC;
 
+CREATE OR REPLACE VIEW public.v_daily_summary AS
+SELECT
+    user_id,
+    expense_date,
+    COUNT(id) AS total_transactions,
+    COALESCE(SUM(amount), 0) AS total_amount
+FROM public.expenses
+GROUP BY user_id, expense_date
+ORDER BY expense_date DESC;
+
 -- ============================================================
--- 9. FUNCTIONS: Helper Functions
+-- 8. HELPER FUNCTIONS
 -- ============================================================
 
--- Function: Get user's monthly spending
-CREATE OR REPLACE FUNCTION get_monthly_spending(p_user_id TEXT, p_month DATE DEFAULT CURRENT_DATE)
+CREATE OR REPLACE FUNCTION public.get_monthly_spending(
+    p_user_id TEXT,
+    p_month DATE DEFAULT CURRENT_DATE
+)
 RETURNS TABLE (
-    total_spending DECIMAL,
+    total_spending NUMERIC,
     transaction_count BIGINT
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
-        COALESCE(SUM(amount), 0)::DECIMAL AS total_spending,
-        COUNT(*)::BIGINT AS transaction_count
-    FROM public.expenses
-    WHERE user_id = p_user_id
-    AND DATE_TRUNC('month', expense_date) = DATE_TRUNC('month', p_month);
+    SELECT
+        COALESCE(SUM(e.amount), 0)::NUMERIC AS total_spending,
+        COUNT(e.id)::BIGINT AS transaction_count
+    FROM public.expenses e
+    WHERE e.user_id = p_user_id
+      AND DATE_TRUNC('month', e.expense_date) = DATE_TRUNC('month', p_month);
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql STABLE;
 
--- Function: Get daily spending for chart
-CREATE OR REPLACE FUNCTION get_daily_spending(p_user_id TEXT, p_days INT DEFAULT 30)
+CREATE OR REPLACE FUNCTION public.get_daily_spending(
+    p_user_id TEXT,
+    p_days INT DEFAULT 30
+)
 RETURNS TABLE (
     date DATE,
-    total DECIMAL
+    total NUMERIC
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
-        expense_date AS date,
-        SUM(amount) AS total
-    FROM public.expenses
-    WHERE user_id = p_user_id
-    AND expense_date >= CURRENT_DATE - p_days
-    GROUP BY expense_date
-    ORDER BY expense_date;
+    SELECT
+        e.expense_date AS date,
+        COALESCE(SUM(e.amount), 0)::NUMERIC AS total
+    FROM public.expenses e
+    WHERE e.user_id = p_user_id
+      AND e.expense_date >= CURRENT_DATE - p_days
+    GROUP BY e.expense_date
+    ORDER BY e.expense_date;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION public.get_category_spending(
+    p_user_id TEXT,
+    p_from DATE DEFAULT DATE_TRUNC('month', CURRENT_DATE)::DATE,
+    p_to DATE DEFAULT CURRENT_DATE
+)
+RETURNS TABLE (
+    category_id UUID,
+    category_name TEXT,
+    category_color TEXT,
+    total_transactions BIGINT,
+    total_amount NUMERIC
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        c.id AS category_id,
+        COALESCE(c.name, 'Tanpa Kategori') AS category_name,
+        COALESCE(c.color, '#757575') AS category_color,
+        COUNT(e.id)::BIGINT AS total_transactions,
+        COALESCE(SUM(e.amount), 0)::NUMERIC AS total_amount
+    FROM public.expenses e
+    LEFT JOIN public.categories c ON e.category_id = c.id
+    WHERE e.user_id = p_user_id
+      AND e.expense_date BETWEEN p_from AND p_to
+    GROUP BY c.id, c.name, c.color
+    ORDER BY total_amount DESC;
+END;
+$$ LANGUAGE plpgsql STABLE;
 
 -- ============================================================
--- ✅ SELESAI! Database schema siap digunakan
+-- 9. OPTIONAL STORAGE BUCKET
 -- ============================================================
--- 
--- Untuk mengecek tabel sudah dibuat:
+-- Saat ini aplikasi menyimpan attachment sebagai base64 di database.
+-- Jika nanti mau pindah ke Supabase Storage, bucket ini bisa dipakai.
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('receipts', 'receipts', true)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "receipts_public_read" ON storage.objects;
+CREATE POLICY "receipts_public_read" ON storage.objects
+    FOR SELECT
+    USING (bucket_id = 'receipts');
+
+DROP POLICY IF EXISTS "receipts_service_insert" ON storage.objects;
+CREATE POLICY "receipts_service_insert" ON storage.objects
+    FOR INSERT
+    WITH CHECK (bucket_id = 'receipts');
+
+DROP POLICY IF EXISTS "receipts_service_update" ON storage.objects;
+CREATE POLICY "receipts_service_update" ON storage.objects
+    FOR UPDATE
+    USING (bucket_id = 'receipts')
+    WITH CHECK (bucket_id = 'receipts');
+
+DROP POLICY IF EXISTS "receipts_service_delete" ON storage.objects;
+CREATE POLICY "receipts_service_delete" ON storage.objects
+    FOR DELETE
+    USING (bucket_id = 'receipts');
+
+-- ============================================================
+-- 10. QUICK CHECKS
+-- ============================================================
+-- SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
+-- SELECT * FROM public.categories WHERE is_default = TRUE ORDER BY name;
+-- SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'users';
+-- ============================================================
+
 -- SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
 --
 -- Untuk mengecek kategori default:

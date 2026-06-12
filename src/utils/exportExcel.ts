@@ -51,7 +51,7 @@ export function exportToExcel({ expenses, periodLabel, dateFrom: _dateFrom, date
 
     // Title
     mainData.push(['LAPORAN PENGELUARAN']);
-    mainData.push(['Dompet Teratai']);
+    mainData.push(['Kampung Jati']);
     mainData.push([]);
 
     // Report info

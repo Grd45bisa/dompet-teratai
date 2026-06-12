@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { setToken } from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * OAuth Callback Page
@@ -10,6 +11,7 @@ import { setToken } from '../lib/api';
 export function AuthCallback() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const { completeLogin } = useAuth();
 
     useEffect(() => {
         const token = searchParams.get('token');
@@ -27,6 +29,7 @@ export function AuthCallback() {
 
             // Fetch user to check onboarding status
             fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
+                cache: 'no-store',
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -34,14 +37,12 @@ export function AuthCallback() {
                 .then((res) => res.json())
                 .then((data) => {
                     if (data.success && data.data) {
-                        localStorage.setItem('expense_tracker_user', JSON.stringify(data.data));
+                        completeLogin(data.data);
 
-                        // Use window.location.href for full page reload
-                        // This ensures AuthContext loads fresh user data
                         if (data.data.onboarding_completed) {
-                            window.location.href = '/dashboard';
+                            navigate('/dashboard', { replace: true });
                         } else {
-                            window.location.href = '/complete-profile';
+                            navigate('/complete-profile', { replace: true });
                         }
                     } else {
                         navigate('/login?error=auth_failed', { replace: true });
@@ -53,7 +54,7 @@ export function AuthCallback() {
         } else {
             navigate('/login?error=no_token', { replace: true });
         }
-    }, [navigate, searchParams]);
+    }, [completeLogin, navigate, searchParams]);
 
     return (
         <div className="auth-callback-container">

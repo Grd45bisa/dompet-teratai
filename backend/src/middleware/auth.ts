@@ -22,8 +22,25 @@ export async function authMiddleware(
         }
 
         const token = authHeader.split(' ')[1];
+        const looksLikeJwt = token.split('.').length === 3;
 
-        // Try to verify as Google token first
+        if (!looksLikeJwt) {
+            const { data: user, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', token)
+                .single();
+
+            if (error || !user) {
+                res.status(401).json({ success: false, error: 'Invalid token' });
+                return;
+            }
+
+            req.user = user as User;
+            next();
+            return;
+        }
+
         try {
             const ticket = await googleClient.verifyIdToken({
                 idToken: token,
@@ -36,7 +53,6 @@ export async function authMiddleware(
                 return;
             }
 
-            // Get user from database
             const { data: user, error } = await supabase
                 .from('users')
                 .select('*')
@@ -51,21 +67,7 @@ export async function authMiddleware(
             req.user = user as User;
             next();
         } catch (googleError) {
-            // If Google verification fails, try as a user ID
-            // This is for session-based auth where we store user ID
-            const { data: user, error } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', token)
-                .single();
-
-            if (error || !user) {
-                res.status(401).json({ success: false, error: 'Invalid token' });
-                return;
-            }
-
-            req.user = user as User;
-            next();
+            res.status(401).json({ success: false, error: 'Invalid token' });
         }
     } catch (error) {
         console.error('Auth middleware error:', error);

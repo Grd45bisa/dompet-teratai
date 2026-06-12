@@ -6,6 +6,9 @@ import { emitToUser, SocketEvents } from '../config/socket';
 
 const router = Router();
 
+const expenseListSelect = 'id,user_id,category_id,amount,description,expense_date,receipt_url,attachment_type,ai_processed,created_at,updated_at,category:categories(*)';
+const expenseDetailSelect = 'id,user_id,category_id,amount,description,expense_date,receipt_url,attachment_type,attachment_data,ai_processed,created_at,updated_at,category:categories(*)';
+
 // Apply auth middleware to all routes
 router.use(authMiddleware);
 
@@ -24,7 +27,7 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
 
         let query = supabase
             .from('expenses')
-            .select('*, category:categories(*)')
+            .select(expenseListSelect)
             .eq('user_id', req.user.id)
             .order('expense_date', { ascending: false })
             .order('created_at', { ascending: false });
@@ -65,6 +68,38 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
 });
 
 /**
+ * GET /api/expenses/:id
+ * Get one expense detail for current user
+ */
+router.get('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ success: false, error: 'Not authenticated' });
+            return;
+        }
+
+        const { id } = req.params;
+
+        const { data, error } = await supabase
+            .from('expenses')
+            .select(expenseDetailSelect)
+            .eq('id', id)
+            .eq('user_id', req.user.id)
+            .single();
+
+        if (error || !data) {
+            res.status(404).json({ success: false, error: 'Expense not found' });
+            return;
+        }
+
+        res.json({ success: true, data });
+    } catch (error) {
+        console.error('Get expense detail error:', error);
+        res.status(500).json({ success: false, error: 'Failed to get expense detail' });
+    }
+});
+
+/**
  * POST /api/expenses
  * Create new expense
  */
@@ -100,7 +135,7 @@ router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
                 attachment_type: attachment_type || null,
                 attachment_data: attachment_data || null,
             })
-            .select('*, category:categories(*)')
+            .select(expenseDetailSelect)
             .single();
 
         if (error) {
@@ -152,7 +187,7 @@ router.put('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
                 updated_at: new Date().toISOString(),
             })
             .eq('id', id)
-            .select('*, category:categories(*)')
+            .select(expenseDetailSelect)
             .single();
 
         if (error) {

@@ -151,7 +151,7 @@ dompet-teratai/
 <summary><b>Frontend (.env)</b></summary>
 
 ```env
-VITE_API_URL=http://localhost:3001/api
+VITE_API_URL=http://localhost:3000/api
 ```
 
 </details>

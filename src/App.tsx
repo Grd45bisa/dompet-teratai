@@ -5,13 +5,13 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { Layout } from './components/layout/Layout';
 
-// Main pages - direct import for no loading when navigating
-import Dashboard from './pages/Dashboard';
-import Transactions from './pages/Transactions';
-import Reports from './pages/Reports';
-import Settings from './pages/Settings';
+// Main app shell and pages - lazy loaded to keep auth flow light
+const Layout = lazy(() => import('./components/layout/Layout'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Transactions = lazy(() => import('./pages/Transactions'));
+const Reports = lazy(() => import('./pages/Reports'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 // Auth pages - lazy loaded (only needed once)
 const Login = lazy(() => import('./pages/Login'));

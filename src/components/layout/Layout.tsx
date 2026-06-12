@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
     Receipt,
@@ -11,9 +11,41 @@ import {
     List,
     PieChart,
     Plus,
+    MessageCircle,
+    Bot,
+    Upload,
+    Send,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { chatApi, ChatHistoryItem, ChatPendingAction } from '../../lib/api';
 import { UploadModal } from '../dashboard/UploadModal';
+
+interface ChatMessageItem {
+    id: string;
+    role: 'assistant' | 'user';
+    text: string;
+}
+
+function toChatHistory(messages: ChatMessageItem[]): ChatHistoryItem[] {
+    return messages.map((message) => ({
+        role: message.role,
+        text: message.text,
+    }));
+}
+
+const defaultChatSuggestions = [
+    'Bantu catat pengeluaran',
+    'Cara pakai chatbot',
+    'Cek fungsi chatbot',
+];
+
+const initialChatMessages: ChatMessageItem[] = [
+    {
+        id: 'assistant-welcome',
+        role: 'assistant',
+        text: 'Halo, aku bisa bantu jelasin fitur dan bantu siapkan pencatatan pengeluaran dari chat.',
+    },
+];
 
 // Navigation items for desktop sidebar
 const sidebarItems = [
@@ -36,9 +68,18 @@ const mobileNavRight = [
 
 export function Layout() {
     const location = useLocation();
+    const navigate = useNavigate();
     const { signOut, user } = useAuth();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
+    const [quickActionsOpen, setQuickActionsOpen] = useState(false);
+    const [chatbotOpen, setChatbotOpen] = useState(false);
+    const [chatMessages, setChatMessages] = useState<ChatMessageItem[]>(initialChatMessages);
+    const [chatInput, setChatInput] = useState('');
+    const [chatSuggestions, setChatSuggestions] = useState<string[]>(defaultChatSuggestions);
+    const [chatPendingAction, setChatPendingAction] = useState<ChatPendingAction | null>(null);
+    const [chatSending, setChatSending] = useState(false);
+    const chatBodyRef = useRef<HTMLDivElement | null>(null);
 
     // Demo mode support
     const isDemoMode = localStorage.getItem('demo_mode') === 'true';
@@ -58,6 +99,135 @@ export function Layout() {
         }
     };
 
+    const closeChatbot = useCallback(() => {
+        if (location.hash === '#chat') {
+            navigate(-1);
+            return;
+        }
+
+        setChatbotOpen(false);
+    }, [location.hash, navigate]);
+
+    const openUploadModal = () => {
+        setQuickActionsOpen(false);
+        setChatbotOpen(false);
+        setUploadModalOpen(true);
+    };
+
+    const openChatbot = () => {
+        setQuickActionsOpen(false);
+        if (location.hash !== '#chat') {
+            navigate(`${location.pathname}${location.search}#chat`);
+            return;
+        }
+
+        setChatbotOpen(true);
+    };
+
+    const toggleChatbot = () => {
+        setQuickActionsOpen(false);
+        if (chatbotOpen) {
+            closeChatbot();
+            return;
+        }
+
+        openChatbot();
+    };
+
+    const toggleQuickActions = () => {
+        setChatbotOpen(false);
+        setQuickActionsOpen((open) => !open);
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setQuickActionsOpen(false);
+                closeChatbot();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [closeChatbot]);
+
+    useEffect(() => {
+        setMobileMenuOpen(false);
+        setQuickActionsOpen(false);
+        setChatbotOpen(location.hash === '#chat');
+    }, [location.pathname, location.hash]);
+
+    useEffect(() => {
+        if (!chatbotOpen || !chatBodyRef.current) {
+            return;
+        }
+
+        const node = chatBodyRef.current;
+        requestAnimationFrame(() => {
+            node.scrollTop = node.scrollHeight;
+        });
+    }, [chatMessages, chatSending, chatPendingAction, chatbotOpen]);
+
+    const appendChatMessage = (role: ChatMessageItem['role'], text: string) => {
+        setChatMessages((current) => [
+            ...current,
+            {
+                id: `${role}-${Date.now()}-${current.length}`,
+                role,
+                text,
+            },
+        ]);
+    };
+
+    const handleSendChat = async (messageText?: string, pendingActionOverride?: ChatPendingAction | null) => {
+        const finalMessage = (messageText ?? chatInput).trim();
+        if (!finalMessage || chatSending) {
+            return;
+        }
+
+        const historyBeforeSend = toChatHistory(chatMessages);
+        const activePendingAction = pendingActionOverride !== undefined ? pendingActionOverride : null;
+
+        appendChatMessage('user', finalMessage);
+        setChatInput('');
+        setChatSending(true);
+
+        if (pendingActionOverride === undefined) {
+            setChatPendingAction(null);
+        }
+
+        if (isDemoMode) {
+            setTimeout(() => {
+                appendChatMessage('assistant', 'Chatbot belum tersedia di mode demo. Masuk dengan akun biasa supaya aku bisa baca data pengeluaranmu.');
+                setChatSuggestions(defaultChatSuggestions);
+                setChatSending(false);
+            }, 250);
+            return;
+        }
+
+        try {
+            const result = await chatApi.sendMessage(finalMessage, historyBeforeSend, activePendingAction);
+
+            if (result.success && result.data) {
+                appendChatMessage('assistant', result.data.reply);
+                setChatPendingAction(result.data.pending_action || null);
+                setChatSuggestions(result.data.suggested_prompts?.length ? result.data.suggested_prompts : defaultChatSuggestions);
+            } else {
+                appendChatMessage('assistant', result.error || 'Tadi ada gangguan kecil. Coba ulangi pesanmu sebentar lagi ya.');
+            }
+        } catch (error) {
+            console.error('Chat send failed:', error);
+            appendChatMessage('assistant', 'Koneksi chat lagi goyang sedikit. Kirim lagi pesannya ya.');
+        } finally {
+            setChatSending(false);
+        }
+    };
+
+    const handleChatSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        await handleSendChat();
+    };
+
     return (
         <div className="layout-container">
             {/* ===== DESKTOP SIDEBAR (≥768px) ===== */}
@@ -66,12 +236,10 @@ export function Layout() {
                 <div className="sidebar-logo-section">
                     <img
                         src="/Logotrans-Teratai.webp"
-                        alt="Dompet Teratai"
+                        alt="Kampung Jati"
                         className="sidebar-logo-image"
                     />
-                    <span className="sidebar-logo-text">
-                        <span className="sidebar-logo-text-primary">Dompet</span> Teratai
-                    </span>
+                        <span className="sidebar-logo-text">Kampung Jati</span>
                 </div>
 
                 {/* Navigation */}
@@ -132,12 +300,10 @@ export function Layout() {
                     <div className="layout-mobile-header-logo">
                         <img
                             src="/Logotrans-Teratai.webp"
-                            alt="Dompet Teratai"
+                            alt="Kampung Jati"
                             className="layout-mobile-header-logo-img"
                         />
-                        <span className="layout-mobile-header-title">
-                            <span className="sidebar-logo-text-primary">Dompet</span> Teratai
-                        </span>
+                        <span className="layout-mobile-header-title">Kampung Jati</span>
                     </div>
                 </div>
             </header>
@@ -155,12 +321,10 @@ export function Layout() {
                             <div className="layout-mobile-header-logo">
                                 <img
                                     src="/Logotrans-Teratai.webp"
-                                    alt="Dompet Teratai"
+                                    alt="Kampung Jati"
                                     className="layout-mobile-drawer-logo"
                                 />
-                                <span className="layout-mobile-header-title">
-                                    <span className="sidebar-logo-text-primary">Dompet</span> Teratai
-                                </span>
+                                <span className="layout-mobile-header-title">Kampung Jati</span>
                             </div>
                             <button
                                 onClick={() => setMobileMenuOpen(false)}
@@ -222,13 +386,67 @@ export function Layout() {
             </main>
 
             {/* ===== DESKTOP FLOATING BUTTON (≥768px) ===== */}
-            <button
-                onClick={() => setUploadModalOpen(true)}
-                className="layout-desktop-fab"
-                aria-label="Tambah Pengeluaran"
-            >
-                <Plus className="layout-fab-icon" strokeWidth={2.5} />
-            </button>
+            <div className="layout-desktop-fab-wrapper">
+                {quickActionsOpen && (
+                    <>
+                        <button
+                            className="layout-quick-actions-backdrop"
+                            aria-label="Tutup menu cepat"
+                            onClick={() => setQuickActionsOpen(false)}
+                        />
+                        <div className="layout-quick-actions-menu" role="menu">
+                            <button
+                                type="button"
+                                className="layout-quick-action-item"
+                                onClick={openUploadModal}
+                                role="menuitem"
+                            >
+                                <span className="layout-quick-action-icon layout-quick-action-icon-upload">
+                                    <Upload />
+                                </span>
+                                <span className="layout-quick-action-text">
+                                    <strong>Upload Struk</strong>
+                                    <small>Scan foto atau PDF</small>
+                                </span>
+                            </button>
+                            <button
+                                type="button"
+                                className="layout-quick-action-item"
+                                onClick={openChatbot}
+                                role="menuitem"
+                            >
+                                <span className="layout-quick-action-icon layout-quick-action-icon-chat">
+                                    <MessageCircle />
+                                </span>
+                                <span className="layout-quick-action-text">
+                                    <strong>Chatbot</strong>
+                                    <small>Tanya soal keuangan</small>
+                                </span>
+                            </button>
+                        </div>
+                    </>
+                )}
+                <button
+                    onClick={toggleQuickActions}
+                    className={`layout-desktop-fab ${quickActionsOpen ? 'layout-desktop-fab-open' : ''}`}
+                    aria-label="Buka menu tambah"
+                    aria-expanded={quickActionsOpen}
+                >
+                    <Plus className="layout-fab-icon" strokeWidth={2.5} />
+                </button>
+            </div>
+
+            {!chatbotOpen && (
+                <button
+                    type="button"
+                    className="layout-mobile-chat-fab"
+                    aria-label="Buka chatbot"
+                    aria-expanded={false}
+                    onClick={toggleChatbot}
+                >
+                    <MessageCircle className="layout-chat-fab-icon" />
+                </button>
+            )}
 
             {/* ===== MOBILE BOTTOM NAV WITH CENTER BUTTON (<768px) ===== */}
             <nav className="layout-mobile-bottom-nav">
@@ -251,7 +469,7 @@ export function Layout() {
 
                     {/* CENTER ADD BUTTON */}
                     <button
-                        onClick={() => setUploadModalOpen(true)}
+                        onClick={openUploadModal}
                         className="layout-mobile-center-fab"
                         aria-label="Tambah Pengeluaran"
                     >
@@ -281,6 +499,135 @@ export function Layout() {
                 isOpen={uploadModalOpen}
                 onClose={() => setUploadModalOpen(false)}
             />
+
+            {chatbotOpen && (
+                <div className="layout-chatbot-panel" role="dialog" aria-label="Chatbot keuangan">
+                    <div className="layout-chatbot-header">
+                        <div className="layout-chatbot-title">
+                            <span className="layout-chatbot-avatar">
+                                <Bot />
+                            </span>
+                            <div className="layout-chatbot-title-copy">
+                                <p>Asisten Kampung Jati</p>
+                                <span>Teman ngobrol soal pengeluaran harian</span>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            className="layout-chatbot-close"
+                            onClick={closeChatbot}
+                            aria-label="Tutup chatbot"
+                        >
+                            <X />
+                        </button>
+                    </div>
+                    <div className="layout-chatbot-status">
+                        <span className="layout-chatbot-status-dot" />
+                        <span>Mode preview aktif</span>
+                    </div>
+                    <div className="layout-chatbot-body" ref={chatBodyRef}>
+                        <div className="layout-chatbot-intro-card">
+                            <p className="layout-chatbot-intro-title">Bisa bantu apa?</p>
+                            <div className="layout-chatbot-suggestion-list">
+                                {chatSuggestions.map((suggestion) => (
+                                    <button
+                                        key={suggestion}
+                                        type="button"
+                                        className="layout-chatbot-suggestion-chip"
+                                        onClick={() => handleSendChat(suggestion)}
+                                        disabled={chatSending}
+                                    >
+                                        {suggestion}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        {chatMessages.map((message) => (
+                            <div
+                                key={message.id}
+                                className={`layout-chatbot-message-row ${message.role === 'assistant' ? 'layout-chatbot-message-row-bot' : 'layout-chatbot-message-row-user'}`}
+                            >
+                                <span className="layout-chatbot-message-badge">
+                                    {message.role === 'assistant' ? 'Asisten' : 'Kamu'}
+                                </span>
+                                <div
+                                    className={`layout-chatbot-message ${message.role === 'assistant' ? 'layout-chatbot-message-bot' : 'layout-chatbot-message-user'}`}
+                                >
+                                    {message.text}
+                                </div>
+                            </div>
+                        ))}
+                        {chatSending && (
+                            <div className="layout-chatbot-message-row layout-chatbot-message-row-bot">
+                                <span className="layout-chatbot-message-badge">Asisten</span>
+                                <div className="layout-chatbot-message layout-chatbot-message-bot layout-chatbot-message-loading">
+                                    <span />
+                                    <span />
+                                    <span />
+                                </div>
+                            </div>
+                        )}
+                        {chatPendingAction && (
+                            <div className="layout-chatbot-confirm-card">
+                                <p className="layout-chatbot-confirm-title">Konfirmasi pencatatan</p>
+                                <div className="layout-chatbot-confirm-grid">
+                                    <span>Toko</span>
+                                    <strong>{chatPendingAction.draft.toko || '-'}</strong>
+                                    <span>Jumlah</span>
+                                    <strong>Rp{Math.round(chatPendingAction.draft.amount).toLocaleString('id-ID')}</strong>
+                                    <span>Tanggal</span>
+                                    <strong>{chatPendingAction.draft.expense_date}</strong>
+                                    <span>Kategori</span>
+                                    <strong>{chatPendingAction.draft.category_name}</strong>
+                                </div>
+                                {chatPendingAction.draft.description && (
+                                    <p className="layout-chatbot-confirm-note">{chatPendingAction.draft.description}</p>
+                                )}
+                                <div className="layout-chatbot-confirm-actions">
+                                    <button
+                                        type="button"
+                                        className="layout-chatbot-confirm-secondary"
+                                        onClick={() => handleSendChat('Batal dulu', chatPendingAction)}
+                                        disabled={chatSending}
+                                    >
+                                        Tidak jadi
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="layout-chatbot-confirm-primary"
+                                        onClick={() => handleSendChat('Ya, catat', chatPendingAction)}
+                                        disabled={chatSending}
+                                    >
+                                        Ya, catat
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <form className="layout-chatbot-input-row" onSubmit={handleChatSubmit}>
+                        <div className="layout-chatbot-input-shell">
+                            <input
+                                className="layout-chatbot-input"
+                                placeholder="Tulis pertanyaan kamu di sini..."
+                                value={chatInput}
+                                onChange={(event) => setChatInput(event.target.value)}
+                                disabled={chatSending}
+                            />
+                            <button
+                                type="submit"
+                                className="layout-chatbot-send"
+                                disabled={chatSending || !chatInput.trim()}
+                                aria-label="Kirim pesan"
+                            >
+                                <Send />
+                            </button>
+                        </div>
+                        <p className="layout-chatbot-input-hint">
+                            Kamu bisa tanya fitur atau kirim detail pengeluaran untuk disiapkan pencatatannya.
+                        </p>
+                    </form>
+                </div>
+            )}
         </div>
     );
 }

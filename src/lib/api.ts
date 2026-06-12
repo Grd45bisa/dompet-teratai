@@ -7,7 +7,6 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3100/api';
 
 // Storage keys
 const TOKEN_KEY = 'expense_tracker_token';
-const USER_KEY = 'expense_tracker_user';
 
 // Get stored token
 export function getToken(): string | null {
@@ -22,7 +21,6 @@ export function setToken(token: string): void {
 // Clear token
 export function clearToken(): void {
     localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
 }
 
 // Generic fetch wrapper
@@ -45,6 +43,7 @@ async function fetchApi<T>(
         const response = await fetch(`${API_URL}${endpoint}`, {
             ...options,
             headers,
+            cache: 'no-store',
         });
 
         const data = await response.json();
@@ -82,7 +81,6 @@ export const authApi = {
 
         if (result.success && result.data) {
             setToken(result.data.token);
-            localStorage.setItem(USER_KEY, JSON.stringify(result.data.user));
         }
 
         return result;
@@ -154,6 +152,13 @@ export const expensesApi = {
 
         const query = params.toString();
         return fetchApi<Expense[]>(`/expenses${query ? `?${query}` : ''}`);
+    },
+
+    /**
+     * Get expense detail by id
+     */
+    async getExpense(id: string) {
+        return fetchApi<Expense>(`/expenses/${id}`);
     },
 
     /**
@@ -274,6 +279,49 @@ export const aiApi = {
 };
 
 // ============================================
+// Chat API
+// ============================================
+
+export interface ChatExpenseDraft {
+    toko: string;
+    amount: number;
+    expense_date: string;
+    category_name: string;
+    category_id: string;
+    description: string;
+}
+
+export interface ChatPendingAction {
+    type: 'create_expense';
+    draft: ChatExpenseDraft;
+}
+
+export interface ChatHistoryItem {
+    role: 'user' | 'assistant';
+    text: string;
+}
+
+export interface ChatMessageResponse {
+    reply: string;
+    pending_action: ChatPendingAction | null;
+    suggested_prompts: string[];
+    expense_created?: Expense;
+}
+
+export const chatApi = {
+    async sendMessage(message: string, history: ChatHistoryItem[] = [], pendingAction?: ChatPendingAction | null) {
+        return fetchApi<ChatMessageResponse>('/chat/message', {
+            method: 'POST',
+            body: JSON.stringify({
+                message,
+                history,
+                pending_action: pendingAction || null,
+            }),
+        });
+    },
+};
+
+// ============================================
 // Types (matching backend)
 // ============================================
 
@@ -331,4 +379,5 @@ export default {
     expenses: expensesApi,
     categories: categoriesApi,
     ai: aiApi,
+    chat: chatApi,
 };

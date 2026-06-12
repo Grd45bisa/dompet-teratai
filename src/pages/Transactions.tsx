@@ -140,25 +140,8 @@ export function Transactions() {
     const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
 
-    // Cache key
-    const cacheKey = user ? `transactions_${user.id}_${dateFrom}_${dateTo}` : null;
-
     const fetchData = useCallback(async () => {
         if (!user) return;
-
-        // Try cache first
-        if (cacheKey) {
-            const cached = localStorage.getItem(cacheKey);
-            if (cached) {
-                try {
-                    const { data, timestamp } = JSON.parse(cached);
-                    if (Date.now() - timestamp < 2 * 60 * 1000) {
-                        setExpenses(data);
-                        setIsLoading(false);
-                    }
-                } catch (e) { }
-            }
-        }
 
         // Fetch from backend API
         const result = await expensesApi.getExpenses({
@@ -175,38 +158,16 @@ export function Transactions() {
                 );
             }
             setExpenses(filteredData as Expense[]);
-            if (cacheKey) {
-                localStorage.setItem(cacheKey, JSON.stringify({
-                    data: filteredData,
-                    timestamp: Date.now(),
-                }));
-            }
         }
 
         // Fetch categories
-        const catCacheKey = `categories_${user.id}`;
-        const catCached = localStorage.getItem(catCacheKey);
-
-        if (catCached) {
-            try {
-                const { data: cachedCats, timestamp } = JSON.parse(catCached);
-                if (Date.now() - timestamp < 10 * 60 * 1000) {
-                    setCategories(cachedCats);
-                }
-            } catch (e) { }
-        }
-
         const catResult = await categoriesApi.getCategories();
         if (catResult.success && catResult.data) {
             setCategories(catResult.data as Category[]);
-            localStorage.setItem(catCacheKey, JSON.stringify({
-                data: catResult.data,
-                timestamp: Date.now(),
-            }));
         }
 
         setIsLoading(false);
-    }, [user, dateFrom, dateTo, selectedCategories, cacheKey]);
+    }, [user, dateFrom, dateTo, selectedCategories]);
 
     useEffect(() => {
         fetchData();

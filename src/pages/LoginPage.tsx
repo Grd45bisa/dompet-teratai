@@ -180,7 +180,7 @@ export function LoginPage() {
 
                 {/* Footer */}
                 <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
-                    © 2024 ExpenseTracker. All rights reserved.
+                    © 2024 Kampung Jati. All rights reserved.
                 </p>
             </div>
         </div>

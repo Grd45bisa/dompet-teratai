@@ -7,15 +7,19 @@ interface AuthContextType {
     signOut: () => Promise<void>;
     updateUser: (data: Partial<User>) => Promise<{ error: Error | null }>;
     refreshUser: () => Promise<void>;
+    completeLogin: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const USER_STORAGE_KEY = 'expense_tracker_user';
-
 function AuthProviderInner({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const completeLogin = useCallback((nextUser: User) => {
+        setUser(nextUser);
+        setLoading(false);
+    }, []);
 
     // Refresh user data from backend
     const refreshUser = useCallback(async () => {
@@ -30,7 +34,6 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
             const result = await authApi.getProfile();
             if (result.success && result.data) {
                 setUser(result.data);
-                localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(result.data));
             } else {
                 // Token invalid, clear it
                 clearToken();
@@ -45,22 +48,12 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    // Load user from localStorage on mount
+    // Load user from backend on mount if token exists
     useEffect(() => {
-        const storedUser = localStorage.getItem(USER_STORAGE_KEY);
         const token = getToken();
 
-        if (storedUser && token) {
-            try {
-                const userData = JSON.parse(storedUser) as User;
-                setUser(userData);
-                // Refresh user data from backend in background
-                refreshUser();
-            } catch (err) {
-                console.error('Error parsing stored user:', err);
-                clearToken();
-                setLoading(false);
-            }
+        if (token) {
+            refreshUser();
         } else {
             setLoading(false);
         }
@@ -91,7 +84,6 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
 
             if (result.data) {
                 setUser(result.data);
-                localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(result.data));
             }
 
             return { error: null };
@@ -106,6 +98,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
         signOut,
         updateUser,
         refreshUser,
+        completeLogin,
     };
 
     return (

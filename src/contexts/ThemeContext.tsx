@@ -10,12 +10,6 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [isDark, setIsDark] = useState<boolean>(() => {
-        // Check localStorage first
-        const saved = localStorage.getItem('theme');
-        if (saved) {
-            return saved === 'dark';
-        }
-        // Check system preference
         return window.matchMedia('(prefers-color-scheme: dark)').matches;
     });
 
@@ -37,9 +31,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
             root.classList.remove('theme-transitioning');
         }, 450); // Slightly longer than the CSS transition duration
 
-        // Save to localStorage
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-
         return () => clearTimeout(timeout);
     }, [isDark]);
 
@@ -47,10 +38,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         const handleChange = (e: MediaQueryListEvent) => {
-            // Only auto-switch if user hasn't set a preference
-            if (!localStorage.getItem('theme')) {
-                setIsDark(e.matches);
-            }
+            setIsDark(e.matches);
         };
 
         mediaQuery.addEventListener('change', handleChange);

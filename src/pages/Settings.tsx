@@ -344,8 +344,8 @@ export function Settings() {
             {/* App Info */}
             <div className="settings-app-info">
                 <p className="settings-app-name">
-                    <span className="settings-brand-dompet">Dompet</span>
-                    <span className="settings-brand-teratai">Teratai</span>
+                    <span className="settings-brand-dompet">Kampung</span>
+                    <span className="settings-brand-teratai">Jati</span>
                 </p>
                 <p className="settings-app-version">Versi 1.0.0</p>
             </div>

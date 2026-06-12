@@ -152,7 +152,7 @@ export function Login() {
                 <div className="login-loading-content">
                     <img
                         src="/Logotrans-Teratai.webp"
-                        alt="Dompet Teratai"
+                        alt="Kampung Jati"
                         className="login-loading-logo"
                     />
                     <Loader2 className="login-loading-spinner" />
@@ -176,7 +176,7 @@ export function Login() {
                                 className="login-logo-image"
                             />
                             <div>
-                                <span className="login-logo-text"><span className="login-logo-text-primary">Dompet</span> Teratai</span>
+                                <span className="login-logo-text">Kampung Jati</span>
                                 <p className="login-logo-subtitle">Expense Tracker</p>
                             </div>
                         </div>
@@ -213,7 +213,7 @@ export function Login() {
 
                     {/* Footer */}
                     <p className="login-footer-text">
-                        © {new Date().getFullYear()} Dompet Teratai. Dikhususkan untuk UMKM Desa Teratai Asri Legok Permai
+                        © {new Date().getFullYear()} Kampung Jati.
                     </p>
                 </div>
 
@@ -301,11 +301,11 @@ export function Login() {
                 <div className="login-mobile-header">
                     <img
                         src="/Logotrans-Teratai.webp"
-                        alt="Dompet Teratai"
+                        alt="Kampung Jati"
                         className="login-mobile-logo"
                     />
                     <h1 className="login-mobile-title">
-                        <span className="login-logo-text-primary">Dompet</span> Teratai
+                        Kampung Jati
                     </h1>
                     <p className="login-mobile-tagline">
                         Teknologi Ekonomi Rakyat Aplikasi Transaksi Akurat Indonesia
@@ -381,7 +381,7 @@ export function Login() {
                         Dengan masuk, Anda menyetujui Syarat & Ketentuan
                     </p>
                     <p className="login-mobile-copyright">
-                        © 2024 Dompet Teratai
+                        © 2024 Kampung Jati
                     </p>
                 </div>
             </div>

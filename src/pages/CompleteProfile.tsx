@@ -133,12 +133,12 @@ export function CompleteProfile() {
                         <div className="cp-logo-section">
                             <img
                                 src="/Logotrans-Teratai.webp"
-                                alt="Dompet Teratai"
+                                alt="Kampung Jati"
                                 className="cp-logo"
                             />
                             <div>
                                 <h2 className="cp-brand-title">
-                                    <span className="text-primary">Dompet</span> Teratai
+                                    Kampung Jati
                                 </h2>
                                 <p className="cp-brand-subtitle">
                                     Expense Tracker
@@ -176,7 +176,7 @@ export function CompleteProfile() {
                     <div className="cp-mobile-header">
                         <img
                             src="/Logotrans-Teratai.webp"
-                            alt="Dompet Teratai"
+                            alt="Kampung Jati"
                             className="cp-mobile-logo"
                         />
                         <h1 className="cp-mobile-title">

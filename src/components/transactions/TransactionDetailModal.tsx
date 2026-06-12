@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { X, Edit2, Trash2, Download, ZoomIn, Check, FileText } from 'lucide-react';
@@ -26,13 +26,46 @@ export function TransactionDetailModal({
     const [isZoomed, setIsZoomed] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showPdfViewer, setShowPdfViewer] = useState(false);
+    const [detailExpense, setDetailExpense] = useState<Expense | null>(expense);
+    const [isDetailLoading, setIsDetailLoading] = useState(false);
 
-    if (!isOpen || !expense) return null;
+    useEffect(() => {
+        setDetailExpense(expense);
+    }, [expense]);
+
+    useEffect(() => {
+        if (!isOpen || !expense || expense.attachment_type !== 'pdf' || expense.attachment_data) {
+            return;
+        }
+
+        let active = true;
+        setIsDetailLoading(true);
+
+        void expensesApi.getExpense(expense.id)
+            .then((result) => {
+                if (active && result.success && result.data) {
+                    setDetailExpense(result.data);
+                }
+            })
+            .finally(() => {
+                if (active) {
+                    setIsDetailLoading(false);
+                }
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [expense, isOpen]);
+
+    const currentExpense = detailExpense || expense;
+
+    if (!isOpen || !currentExpense) return null;
 
     const handleDelete = async () => {
         setIsDeleting(true);
         try {
-            const result = await expensesApi.deleteExpense(expense.id);
+            const result = await expensesApi.deleteExpense(currentExpense.id);
 
             if (!result.success) throw new Error(result.error);
 
@@ -50,10 +83,10 @@ export function TransactionDetailModal({
 
     const handleDownloadReceipt = async () => {
         // Handle PDF download
-        if (expense.attachment_type === 'pdf' && expense.attachment_data) {
+        if (currentExpense.attachment_type === 'pdf' && currentExpense.attachment_data) {
             try {
                 // Convert base64 to blob
-                const base64Data = expense.attachment_data.split(',')[1] || expense.attachment_data;
+                const base64Data = currentExpense.attachment_data.split(',')[1] || currentExpense.attachment_data;
                 const byteCharacters = atob(base64Data);
                 const byteNumbers = new Array(byteCharacters.length);
                 for (let i = 0; i < byteCharacters.length; i++) {
@@ -68,8 +101,8 @@ export function TransactionDetailModal({
                 link.href = url;
 
                 // Generate filename
-                const dateStr = format(new Date(expense.expense_date), 'yyyy-MM-dd');
-                const categoryName = expense.category?.name || 'invoice';
+                const dateStr = format(new Date(currentExpense.expense_date), 'yyyy-MM-dd');
+                const categoryName = currentExpense.category?.name || 'invoice';
                 link.download = `invoice_${categoryName}_${dateStr}.pdf`;
 
                 // Trigger download
@@ -88,11 +121,11 @@ export function TransactionDetailModal({
         }
 
         // Handle image download
-        if (!expense.receipt_url) return;
+        if (!currentExpense.receipt_url) return;
 
         try {
             // Fetch the image
-            const response = await fetch(expense.receipt_url);
+            const response = await fetch(currentExpense.receipt_url);
             const blob = await response.blob();
 
             // Create download link
@@ -101,8 +134,8 @@ export function TransactionDetailModal({
             link.href = url;
 
             // Generate filename from date and category
-            const dateStr = format(new Date(expense.expense_date), 'yyyy-MM-dd');
-            const categoryName = expense.category?.name || 'receipt';
+            const dateStr = format(new Date(currentExpense.expense_date), 'yyyy-MM-dd');
+            const categoryName = currentExpense.category?.name || 'receipt';
             const extension = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
             link.download = `struk_${categoryName}_${dateStr}.${extension}`;
 
@@ -127,7 +160,7 @@ export function TransactionDetailModal({
     };
 
     // Check if expense has any attachment
-    const hasAttachment = expense.receipt_url || (expense.attachment_type === 'pdf' && expense.attachment_data);
+    const hasAttachment = currentExpense.receipt_url || (currentExpense.attachment_type === 'pdf' && currentExpense.attachment_data);
 
     return (
         <div className="tdm-overlay">
@@ -157,14 +190,14 @@ export function TransactionDetailModal({
                     {isEditing ? (
                         <div className="tdm-form-wrapper">
                             <ExpenseForm
-                                receiptUrl={expense.receipt_url}
+                                receiptUrl={currentExpense.receipt_url}
                                 initialData={{
-                                    category_id: expense.category_id || '',
-                                    amount: expense.amount,
-                                    expense_date: expense.expense_date,
-                                    description: expense.description || '',
+                                    category_id: currentExpense.category_id || '',
+                                    amount: currentExpense.amount,
+                                    expense_date: currentExpense.expense_date,
+                                    description: currentExpense.description || '',
                                 }}
-                                expenseId={expense.id}
+                                expenseId={currentExpense.id}
                                 onSuccess={handleEditSuccess}
                                 onCancel={() => setIsEditing(false)}
                             />
@@ -172,13 +205,13 @@ export function TransactionDetailModal({
                     ) : (
                         <div className="tdm-details">
                             {/* Receipt Image */}
-                            {expense.receipt_url && (
+                            {currentExpense.receipt_url && (
                                 <div
                                     className="tdm-receipt-container"
                                     onClick={() => setIsZoomed(true)}
                                 >
                                     <img
-                                        src={expense.receipt_url}
+                                        src={currentExpense.receipt_url}
                                         alt="Receipt"
                                         className="tdm-receipt-img"
                                     />
@@ -189,13 +222,13 @@ export function TransactionDetailModal({
                             )}
 
                             {/* PDF Indicator - Clickable */}
-                            {expense.attachment_type === 'pdf' && expense.attachment_data && (
+                            {currentExpense.attachment_type === 'pdf' && currentExpense.attachment_data && (
                                 <div
                                     className="tdm-pdf-container tdm-pdf-clickable"
                                     onClick={() => setShowPdfViewer(true)}
                                 >
                                     <FileText className="tdm-pdf-icon" />
-                                    <span className="tdm-pdf-label">Klik untuk lihat PDF</span>
+                                    <span className="tdm-pdf-label">{isDetailLoading ? 'Memuat PDF...' : 'Klik untuk lihat PDF'}</span>
                                 </div>
                             )}
 
@@ -207,11 +240,11 @@ export function TransactionDetailModal({
                                     <span
                                         className="tdm-category-badge"
                                         style={{
-                                            backgroundColor: `${expense.category?.color || '#43A047'}20`,
-                                            color: expense.category?.color || '#43A047',
+                                            backgroundColor: `${currentExpense.category?.color || '#43A047'}20`,
+                                            color: currentExpense.category?.color || '#43A047',
                                         }}
                                     >
-                                        {expense.category?.name || 'Lainnya'}
+                                        {currentExpense.category?.name || 'Lainnya'}
                                     </span>
                                 </div>
 
@@ -219,7 +252,7 @@ export function TransactionDetailModal({
                                 <div className="tdm-detail-row">
                                     <span className="tdm-detail-label">Jumlah</span>
                                     <span className="tdm-amount">
-                                        - {formatCurrency(expense.amount)}
+                                        - {formatCurrency(currentExpense.amount)}
                                     </span>
                                 </div>
 
@@ -227,22 +260,22 @@ export function TransactionDetailModal({
                                 <div className="tdm-detail-row">
                                     <span className="tdm-detail-label">Tanggal</span>
                                     <span className="tdm-detail-value">
-                                        {format(new Date(expense.expense_date), 'EEEE, dd MMMM yyyy', { locale: id })}
+                                        {format(new Date(currentExpense.expense_date), 'EEEE, dd MMMM yyyy', { locale: id })}
                                     </span>
                                 </div>
 
                                 {/* Description */}
-                                {expense.description && (
+                                {currentExpense.description && (
                                     <div className="tdm-detail-col">
                                         <span className="tdm-detail-label">Catatan</span>
                                         <span className="tdm-detail-value">
-                                            {expense.description}
+                                            {currentExpense.description}
                                         </span>
                                     </div>
                                 )}
 
                                 {/* AI Status */}
-                                {expense.ai_processed && (
+                                {currentExpense.ai_processed && (
                                     <div className="tdm-ai-badge">
                                         <Check className="tdm-ai-icon" />
                                         <span className="tdm-ai-text">
@@ -285,7 +318,7 @@ export function TransactionDetailModal({
             </div>
 
             {/* Zoom Modal */}
-            {isZoomed && expense.receipt_url && (
+            {isZoomed && currentExpense.receipt_url && (
                 <div
                     className="tdm-zoom-overlay"
                     onClick={() => setIsZoomed(false)}
@@ -297,7 +330,7 @@ export function TransactionDetailModal({
                         <X className="tdm-icon-md" />
                     </button>
                     <img
-                        src={expense.receipt_url}
+                        src={currentExpense.receipt_url}
                         alt="Receipt"
                         className="tdm-zoom-img"
                     />
@@ -335,7 +368,7 @@ export function TransactionDetailModal({
             )}
 
             {/* PDF Viewer Modal */}
-            {showPdfViewer && expense.attachment_type === 'pdf' && expense.attachment_data && (
+            {showPdfViewer && currentExpense.attachment_type === 'pdf' && currentExpense.attachment_data && (
                 <div className="tdm-zoom-overlay">
                     <button
                         className="tdm-zoom-close"
@@ -345,7 +378,7 @@ export function TransactionDetailModal({
                     </button>
                     <div className="tdm-pdf-viewer">
                         <iframe
-                            src={expense.attachment_data}
+                            src={currentExpense.attachment_data}
                             title="PDF Viewer"
                             className="tdm-pdf-iframe"
                         />

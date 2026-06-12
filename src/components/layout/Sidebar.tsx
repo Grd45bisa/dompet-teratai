@@ -60,12 +60,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <div className="sidebar-logo-section">
                         <img
                             src="/Logotrans-Teratai.webp"
-                            alt="Dompet Teratai"
+                            alt="Kampung Jati"
                             className="sidebar-logo-image"
                         />
-                        <span className="sidebar-logo-text">
-                            <span className="sidebar-logo-text-primary">Dompet</span> Teratai
-                        </span>
+                        <span className="sidebar-logo-text">Kampung Jati</span>
                     </div>
 
                     {/* Navigation */}

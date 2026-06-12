@@ -22,7 +22,25 @@ interface SocketContextType {
 
 const SocketContext = createContext<SocketContextType | null>(null);
 
-const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3100';
+function getSocketUrl() {
+    const apiUrl = import.meta.env.VITE_API_URL;
+
+    if (!apiUrl) {
+        return 'http://localhost:3100';
+    }
+
+    try {
+        const url = new URL(apiUrl);
+        url.pathname = '';
+        url.search = '';
+        url.hash = '';
+        return url.toString().replace(/\/$/, '');
+    } catch {
+        return apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
+    }
+}
+
+const SOCKET_URL = getSocketUrl();
 
 interface SocketProviderProps {
     children: ReactNode;

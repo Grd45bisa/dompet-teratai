@@ -78,15 +78,15 @@ export async function generatePDFReport(data: PDFReportData): Promise<void> {
         doc.ellipse(margin + 8, yPos + 6, 1.5, 2.5, 'F');
     }
 
-    // Brand name - "Dompet" in green, "Teratai" in dark
+    // Brand name - "Kampung" in green, "Jati" in dark
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
     doc.setTextColor(primaryColor.r, primaryColor.g, primaryColor.b);
-    doc.text('Dompet', margin + 16, yPos + 8);
+    doc.text('Kampung', margin + 16, yPos + 8);
 
-    const dompetWidth = doc.getTextWidth('Dompet ');
+    const brandPrefixWidth = doc.getTextWidth('Kampung ');
     doc.setTextColor(darkColor.r, darkColor.g, darkColor.b);
-    doc.text('Teratai', margin + 16 + dompetWidth, yPos + 8);
+    doc.text('Jati', margin + 16 + brandPrefixWidth, yPos + 8);
 
     // Report date
     doc.setFont('helvetica', 'normal');
@@ -274,7 +274,7 @@ export async function generatePDFReport(data: PDFReportData): Promise<void> {
                 );
 
                 doc.text(
-                    'Dompet Teratai - Laporan Pengeluaran',
+                    'Kampung Jati - Laporan Pengeluaran',
                     margin,
                     pageHeight - 10
                 );
@@ -292,7 +292,7 @@ export async function generatePDFReport(data: PDFReportData): Promise<void> {
         doc.setFontSize(8);
         doc.setTextColor(grayColor.r, grayColor.g, grayColor.b);
         doc.text(
-            'Laporan ini dibuat secara otomatis oleh Dompet Teratai.',
+            'Laporan ini dibuat secara otomatis oleh Kampung Jati.',
             margin,
             finalY + 15
         );
